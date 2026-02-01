@@ -6,13 +6,17 @@ import { useBoothStore } from "@/store/boothStore";
 import KonvaStage from "./KonvaStage";
 import StickerPicker from "./StickerPicker";
 import { useKonvaExport } from "./useKonvaExport";
+import PhotoStrip from "@/components/ui/PhotoStrip";
 
 export default function EditorPage() {
   const router = useRouter();
   const stageRef = useRef(null);
 
   const {
-    rawImage,
+    capturedImages,
+    activeIndex,
+    setActiveIndex,
+    retakeActive,
     stickers,
     addSticker,
     updateSticker,
@@ -31,11 +35,11 @@ export default function EditorPage() {
     router.push("/result");
   }
 
-  if (!rawImage) {
+  if (!capturedImages || capturedImages.every((img) => img === null)) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100 flex items-center justify-center p-6">
         <div className="text-center">
-          <p className="text-zinc-600">No image captured</p>
+          <p className="text-zinc-600">No images captured</p>
         </div>
       </div>
     );
@@ -63,9 +67,17 @@ export default function EditorPage() {
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 rounded-3xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl p-4 sm:p-6 shadow-2xl shadow-zinc-900/10 ring-1 ring-zinc-900/5">
+              <div className="mb-8">
+                <PhotoStrip
+                  images={capturedImages}
+                  activeIndex={activeIndex}
+                  onSelect={setActiveIndex}
+                  onRetake={retakeActive}
+                />
+              </div>
                 <KonvaStage
                   stageRef={stageRef}
-                  imageBlob={rawImage}
+                  imageBlob={capturedImages[activeIndex] ?? capturedImages[0]}
                   stickers={stickers}
                   onUpdate={updateSticker}
                   selectedStickerId={selectedStickerId}

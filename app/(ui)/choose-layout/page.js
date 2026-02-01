@@ -11,19 +11,27 @@ export default function ChooseLayoutPage() {
   const [selectedLayout, setSelectedLayout] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { setLayout } = useBoothStore();
 
   useEffect(() => {
     async function loadLayouts() {
       try {
+        setLoading(true);
+        setError(null);
+
         const res = await fetch("/api/layouts");
         if (!res.ok) throw new Error("Failed to load layouts");
 
         const data = await res.json();
-        setLayouts(data.layouts);
+
+        // backend returns array directly
+        setLayouts(Array.isArray(data) ? data : []);
       } catch (err) {
-        setError(err.message);
+        console.error("Layouts error:", err);
+        setError(err.message || "Something went wrong");
+        setLayouts([]);
       } finally {
-        setLoading(false);
+        setLoading(false); // 🔑 THIS WAS MISSING
       }
     }
 
@@ -88,7 +96,7 @@ export default function ChooseLayoutPage() {
 
         {/* Layout Grid with staggered animations */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16 animate-slideUp">
-          {layouts.map((layout, index) => (
+          {layouts.length > 0 && layouts.map((layout, index) => (
             <div
               key={layout.id}
               style={{ 

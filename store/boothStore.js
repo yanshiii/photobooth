@@ -1,85 +1,77 @@
 import { create } from "zustand";
 
 export const useBoothStore = create((set, get) => ({
-  /* ---------------- Layout & Capture Flow ---------------- */
+  // layout + session
+  layout: null, // { id, slots, sessionId }
 
-  layout: null,                 // selected layout object
-  capturedImages: [],            // Blob[] — replaces rawImage
-  currentIndex: 0,               // which slot user is capturing
+  // capture state
+  capturedImages: [], // Array<Blob | null>
+  activeIndex: 0,
+
+  // camera
   isMirrored: true,
 
+  // editor state (unchanged for now)
+  stickers: [],
+  selectedStickerId: null,
+  finalImage: null,
+
+  /* ---------- Layout ---------- */
   setLayout: (layout) =>
     set({
       layout,
-      capturedImages: [],
-      currentIndex: 0,
+      capturedImages: Array(layout.slots).fill(null),
+      activeIndex: 0,
     }),
 
-  addCapturedImage: (blob) => {
-    const { capturedImages, currentIndex } = get();
-
-    set({
-      capturedImages: [...capturedImages, blob],
-      currentIndex: currentIndex + 1,
-    });
-  },
-
-  retakeAtIndex: (index, blob) =>
+  /* ---------- Capture ---------- */
+  addCapturedImage: (blob) =>
     set((state) => {
-      const next = [...state.capturedImages];
-      next[index] = blob;
-      return { capturedImages: next };
+      const images = [...state.capturedImages];
+      images[state.activeIndex] = blob;
+
+      const nextIndex = images.findIndex((img) => img === null);
+
+      return {
+        capturedImages: images,
+        activeIndex:
+          nextIndex === -1 ? state.activeIndex : nextIndex,
+      };
     }),
 
-  resetBooth: () =>
-    set({
-      capturedImages: [],
-      currentIndex: 0,
+  retakeActive: () =>
+    set((state) => {
+      const images = [...state.capturedImages];
+      images[state.activeIndex] = null;
+      return { capturedImages: images };
     }),
 
+  setActiveIndex: (index) =>
+    set({ activeIndex: index }),
+
+  /* ---------- Camera ---------- */
   toggleMirror: () =>
     set((s) => ({ isMirrored: !s.isMirrored })),
 
-  /* ---------------- Editor Output ---------------- */
-
-  finalImage: null,
+  /* ---------- Editor ---------- */
   setFinalImage: (img) => set({ finalImage: img }),
 
-  /* ---------------- Filters ---------------- */
-
-  filters: {
-    brightness: 100,
-    contrast: 100,
-    saturation: 100,
-    grayscale: 0,
-  },
-
-  setFilters: (f) =>
-    set((s) => ({ filters: { ...s.filters, ...f } })),
-
-  /* ---------------- Stickers ---------------- */
-
-  stickers: [],
-  selectedStickerId: null,
+  selectSticker: (id) => set({ selectedStickerId: id }),
+  clearSelection: () => set({ selectedStickerId: null }),
 
   addSticker: (sticker) =>
-    set((state) => ({
-      stickers: [...state.stickers, sticker],
-    })),
+    set((s) => ({ stickers: [...s.stickers, sticker] })),
 
   updateSticker: (id, updates) =>
-    set((state) => ({
-      stickers: state.stickers.map((s) =>
-        s.id === id ? { ...s, ...updates } : s
+    set((s) => ({
+      stickers: s.stickers.map((st) =>
+        st.id === id ? { ...st, ...updates } : st
       ),
     })),
 
   deleteSticker: (id) =>
-    set((state) => ({
-      stickers: state.stickers.filter((s) => s.id !== id),
+    set((s) => ({
+      stickers: s.stickers.filter((st) => st.id !== id),
       selectedStickerId: null,
     })),
-
-  selectSticker: (id) => set({ selectedStickerId: id }),
-  clearSelection: () => set({ selectedStickerId: null }),
 }));

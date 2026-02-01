@@ -12,6 +12,7 @@ import Button from "../../../components/ui/Button";
 import { Title, Subtitle, Body, Meta } from "../../../components/ui/Typography";
 import { fadeUp } from "../../../components/ui/motion";
 import { useBoothStore } from "@/store/boothStore";
+import PhotoStrip from "@/components/ui/PhotoStrip";
 
 export default function BoothPage() {
   const router = useRouter();
@@ -21,8 +22,10 @@ export default function BoothPage() {
   const {
     layout,
     capturedImages,
-    currentIndex,
+    activeIndex,
     addCapturedImage,
+    setActiveIndex,
+    retakeActive,
     toggleMirror,
     isMirrored,
   } = useBoothStore();
@@ -42,7 +45,11 @@ export default function BoothPage() {
 
     addCapturedImage(blob);
 
-    if (currentIndex + 1 === layout.slots) {
+    const nextImages = [...capturedImages];
+    nextImages[activeIndex] = blob;
+
+    const isDone = nextImages.every(Boolean);
+    if (isDone) {
       router.push("/editor");
     }
   }
@@ -72,13 +79,23 @@ export default function BoothPage() {
           className="text-center max-w-2xl mx-auto mb-16"
         >
           <Meta>
-            Step {currentIndex + 1} · Capture ({layout.slots})
+            Step {activeIndex + 1} · Capture ({layout.slots})
           </Meta>
-          <Title className="mt-4">Set up your shot</Title>
+
           <Subtitle>
-            Take photo {currentIndex + 1} of {layout.slots}
+            Take photo {activeIndex + 1} of {layout.slots}
           </Subtitle>
         </motion.header>
+
+        {/* Photo Strip */}
+        <div className="mb-10">
+          <PhotoStrip
+            images={capturedImages}
+            activeIndex={activeIndex}
+            onSelect={setActiveIndex}
+            onRetake={retakeActive}
+          />
+        </div>
 
         {/* Camera Preview */}
         <div className="flex justify-center mb-16">
@@ -101,8 +118,8 @@ export default function BoothPage() {
             />
           </Surface>
 
-          <Body className="text-white/45 text-center">
-            Photo {currentIndex + 1} of {layout.slots}
+          <Body>
+            Photo {activeIndex + 1} of {layout.slots}
           </Body>
         </div>
 
