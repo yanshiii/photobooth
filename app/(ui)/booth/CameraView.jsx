@@ -4,7 +4,8 @@ export default function CameraView({ videoRef, isMirrored }) {
       ref={videoRef}
       autoPlay
       playsInline
-      className={`w-full h-full object-cover ${
+      muted
+      className={`absolute inset-0 w-full h-full object-cover ${
         isMirrored ? "-scale-x-100" : ""
       }`}
     />
