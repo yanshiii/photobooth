@@ -75,8 +75,28 @@ export default function ChooseLayoutPage() {
         <div className="flex flex-col items-center gap-6 animate-fadeIn" style={{ animationDelay: "500ms" }}>
         <button
           disabled={!selectedLayout}
-          onClick={() => {
-            setLayout(selectedLayout);
+          onClick={async () => {
+            if (!selectedLayout) return;
+
+            const res = await fetch("/api/session", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ layoutId: selectedLayout.id }),
+            });
+
+            if (!res.ok) {
+              // TODO: show error UI
+              return;
+            }
+
+            const session = await res.json();
+
+            setLayout({
+              ...selectedLayout,
+              sessionId: session.sessionId,
+              slots: session.slots,
+            });
+
             router.push("/booth");
           }}
             className="group relative overflow-hidden rounded-2xl px-10 py-5 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white font-semibold text-lg shadow-2xl shadow-slate-900/25 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none transition-all duration-500 hover:shadow-3xl hover:shadow-slate-900/40 hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100"
