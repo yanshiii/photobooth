@@ -6,30 +6,39 @@ export const useBoothStore = create((set, get) => ({
    * --------------------------------- */
   layout: null, // { id, slots, sessionId }
 
-  setLayout: (layout) =>
+  setLayout: (layout) => {
+    if (!layout) return;
+
     set({
       layout,
       frames: Array(layout.slots).fill(null),
       activeIndex: 0,
       stickers: [],
+      selectedStickerId: null,
       filters: {
         brightness: 100,
         contrast: 100,
         saturation: 100,
         grayscale: 0,
       },
-    }),
+    });
+  },
 
   /* ---------------------------------
    * Strip frames (CORE)
    * --------------------------------- */
   frames: [],          // Array<Blob | null>
-  activeIndex: 0,      // current slot being captured
+  activeIndex: 0,      // which slot is active
+
+  setActiveIndex: (index) => {
+    const { frames } = get();
+    if (index < 0 || index >= frames.length) return;
+    set({ activeIndex: index });
+  },
 
   addCapturedImage: (blob) => {
     const { frames, activeIndex } = get();
-
-    if (activeIndex >= frames.length) return;
+    if (!frames.length || activeIndex >= frames.length) return;
 
     const nextFrames = [...frames];
     nextFrames[activeIndex] = blob;
@@ -42,10 +51,15 @@ export const useBoothStore = create((set, get) => ({
 
   retakeCurrent: () => {
     const { frames, activeIndex } = get();
+    if (!frames.length) return;
+
     const nextFrames = [...frames];
     nextFrames[activeIndex] = null;
 
-    set({ frames: nextFrames });
+    set({
+      frames: nextFrames,
+      activeIndex,
+    });
   },
 
   retakeAll: () => {
@@ -59,9 +73,9 @@ export const useBoothStore = create((set, get) => ({
   },
 
   /* ---------------------------------
-   * Derived helpers
+   * Derived state (SAFE)
    * --------------------------------- */
-  isComplete: () => get().frames.every(Boolean),
+  isComplete: false,
 
   /* ---------------------------------
    * Camera / UX
@@ -112,3 +126,15 @@ export const useBoothStore = create((set, get) => ({
   selectSticker: (id) => set({ selectedStickerId: id }),
   clearSelection: () => set({ selectedStickerId: null }),
 }));
+
+/* ---------------------------------
+ * SIDE EFFECT: keep isComplete in sync
+ * --------------------------------- */
+useBoothStore.subscribe(
+  (state) => state.frames,
+  (frames) => {
+    useBoothStore.setState({
+      isComplete: frames.length > 0 && frames.every(Boolean),
+    });
+  }
+);
