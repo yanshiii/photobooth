@@ -1,5 +1,8 @@
 import { Stage, Layer, Image, Rect, Transformer, Text } from "react-konva";
 import { useEffect, useRef, useState } from "react";
+import { FRAME_WIDTH, FRAME_HEIGHT } from "@/styles/frame";
+
+/* ---------------- Sticker Image ---------------- */
 
 export function StickerImage({
   sticker,
@@ -65,7 +68,7 @@ export function StickerImage({
       {isSelected && (
         <Transformer
           ref={trRef}
-          rotateEnabled={true}
+          rotateEnabled
           enabledAnchors={[
             "top-left",
             "top-right",
@@ -75,14 +78,14 @@ export function StickerImage({
         />
       )}
 
-      {/* ❌ DELETE BUTTON */}
+      {/* Delete button */}
       {isSelected && (
         <Text
           text="✕"
-          x={sticker.x + sticker.width - 10}
-          y={sticker.y - 20}
+          x={sticker.x + sticker.width - 12}
+          y={sticker.y - 22}
           fontSize={18}
-          fill="red"
+          fill="#ef4444"
           fontStyle="bold"
           onClick={() => onDelete(sticker.id)}
           onTap={() => onDelete(sticker.id)}
@@ -93,6 +96,8 @@ export function StickerImage({
   );
 }
 
+/* ---------------- Main Stage ---------------- */
+
 export default function KonvaStage({
   stageRef,
   imageBlob,
@@ -101,11 +106,11 @@ export default function KonvaStage({
   selectedStickerId,
   onSelect,
   onClearSelection,
-  onDelete
+  onDelete,
 }) {
   const [bgImage, setBgImage] = useState(null);
 
-  // 🔑 LOAD THE CAPTURED PHOTO
+  // Load captured image
   useEffect(() => {
     if (!imageBlob) return;
 
@@ -121,8 +126,8 @@ export default function KonvaStage({
   return (
     <Stage
       ref={stageRef}
-      width={bgImage.width}
-      height={bgImage.height}
+      width={FRAME_WIDTH}
+      height={FRAME_HEIGHT}
       onMouseDown={(e) => {
         if (e.target === e.target.getStage()) {
           onClearSelection();
@@ -130,24 +135,24 @@ export default function KonvaStage({
       }}
     >
       <Layer>
-        {/* 🔑 CLICK CATCHER */}
+        {/* Click catcher */}
         <Rect
           x={0}
           y={0}
-          width={bgImage.width}
-          height={bgImage.height}
+          width={FRAME_WIDTH}
+          height={FRAME_HEIGHT}
           fill="transparent"
-          listening={true}
+          listening
           onClick={onClearSelection}
         />
 
-        {/* Background photo */}
+        {/* Background photo — FITS STAGE */}
         <Image
           image={bgImage}
           x={0}
           y={0}
-          width={bgImage.width}
-          height={bgImage.height}
+          width={FRAME_WIDTH}
+          height={FRAME_HEIGHT}
         />
 
         {/* Stickers */}
@@ -165,4 +170,3 @@ export default function KonvaStage({
     </Stage>
   );
 }
-

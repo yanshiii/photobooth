@@ -1,16 +1,19 @@
-export default function CameraView({ videoRef, isMirrored }) {
+import { FRAME_RATIO, FRAME_WIDTH } from "@/styles/frame";
+
+export default function CameraSurface({ children }) {
   return (
-    <video
-      ref={videoRef}
-      autoPlay
-      playsInline
-      muted
-      className={`
-        absolute inset-0
-        w-full h-full
-        object-cover
-        ${isMirrored ? "scale-x-[-1]" : ""}
-      `}
-    />
+    <div
+      style={{ width: FRAME_WIDTH }}
+      className="
+        relative
+        aspect-[3/4]
+        rounded-2xl
+        overflow-hidden
+        bg-black
+        shadow-xl
+      "
+    >
+      {children}
+    </div>
   );
 }
