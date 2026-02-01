@@ -1,66 +1,100 @@
 import { create } from "zustand";
 
 export const useBoothStore = create((set, get) => ({
-  // layout + session
+  /* ---------------------------------
+   * Layout / Session
+   * --------------------------------- */
   layout: null, // { id, slots, sessionId }
 
-  // capture state
-  capturedImages: [], // Array<Blob | null>
-  activeIndex: 0,
-
-  // camera
-  isMirrored: true,
-
-  // editor state (unchanged for now)
-  stickers: [],
-  selectedStickerId: null,
-  finalImage: null,
-
-  /* ---------- Layout ---------- */
   setLayout: (layout) =>
     set({
       layout,
-      capturedImages: Array(layout.slots).fill(null),
+      frames: Array(layout.slots).fill(null),
       activeIndex: 0,
+      stickers: [],
+      filters: {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        grayscale: 0,
+      },
     }),
 
-  /* ---------- Capture ---------- */
-  addCapturedImage: (blob) =>
-    set((state) => {
-      const images = [...state.capturedImages];
-      images[state.activeIndex] = blob;
+  /* ---------------------------------
+   * Strip frames (CORE)
+   * --------------------------------- */
+  frames: [],          // Array<Blob | null>
+  activeIndex: 0,      // current slot being captured
 
-      const nextIndex = images.findIndex((img) => img === null);
+  addCapturedImage: (blob) => {
+    const { frames, activeIndex } = get();
 
-      return {
-        capturedImages: images,
-        activeIndex:
-          nextIndex === -1 ? state.activeIndex : nextIndex,
-      };
-    }),
+    if (activeIndex >= frames.length) return;
 
-  retakeActive: () =>
-    set((state) => {
-      const images = [...state.capturedImages];
-      images[state.activeIndex] = null;
-      return { capturedImages: images };
-    }),
+    const nextFrames = [...frames];
+    nextFrames[activeIndex] = blob;
 
-  setActiveIndex: (index) =>
-    set({ activeIndex: index }),
+    set({
+      frames: nextFrames,
+      activeIndex: Math.min(activeIndex + 1, frames.length - 1),
+    });
+  },
 
-  /* ---------- Camera ---------- */
+  retakeCurrent: () => {
+    const { frames, activeIndex } = get();
+    const nextFrames = [...frames];
+    nextFrames[activeIndex] = null;
+
+    set({ frames: nextFrames });
+  },
+
+  retakeAll: () => {
+    const { layout } = get();
+    if (!layout) return;
+
+    set({
+      frames: Array(layout.slots).fill(null),
+      activeIndex: 0,
+    });
+  },
+
+  /* ---------------------------------
+   * Derived helpers
+   * --------------------------------- */
+  isComplete: () => get().frames.every(Boolean),
+
+  /* ---------------------------------
+   * Camera / UX
+   * --------------------------------- */
+  isMirrored: true,
   toggleMirror: () =>
     set((s) => ({ isMirrored: !s.isMirrored })),
 
-  /* ---------- Editor ---------- */
-  setFinalImage: (img) => set({ finalImage: img }),
+  /* ---------------------------------
+   * GLOBAL filters (strip-wide)
+   * --------------------------------- */
+  filters: {
+    brightness: 100,
+    contrast: 100,
+    saturation: 100,
+    grayscale: 0,
+  },
 
-  selectSticker: (id) => set({ selectedStickerId: id }),
-  clearSelection: () => set({ selectedStickerId: null }),
+  setFilters: (updates) =>
+    set((s) => ({
+      filters: { ...s.filters, ...updates },
+    })),
+
+  /* ---------------------------------
+   * GLOBAL stickers (strip-wide)
+   * --------------------------------- */
+  stickers: [],
+  selectedStickerId: null,
 
   addSticker: (sticker) =>
-    set((s) => ({ stickers: [...s.stickers, sticker] })),
+    set((s) => ({
+      stickers: [...s.stickers, sticker],
+    })),
 
   updateSticker: (id, updates) =>
     set((s) => ({
@@ -74,4 +108,7 @@ export const useBoothStore = create((set, get) => ({
       stickers: s.stickers.filter((st) => st.id !== id),
       selectedStickerId: null,
     })),
+
+  selectSticker: (id) => set({ selectedStickerId: id }),
+  clearSelection: () => set({ selectedStickerId: null }),
 }));
