@@ -87,22 +87,18 @@ export default function BoothPage() {
           </Subtitle>
         </motion.header>
 
-        {/* Photo Strip */}
-        <div className="mb-10">
-          <PhotoStrip
-            images={capturedImages}
-            activeIndex={activeIndex}
-            onSelect={setActiveIndex}
-            onRetake={retakeActive}
-          />
-        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-12 mb-16">
+        {/* Live camera */}
+        <CameraSurface>
+          <CameraView videoRef={videoRef} isMirrored={isMirrored} />
+        </CameraSurface>
 
-        {/* Camera Preview */}
-        <div className="flex justify-center mb-16">
-          <CameraSurface>
-            <CameraView videoRef={videoRef} isMirrored={isMirrored} />
-          </CameraSurface>
-        </div>
+        {/* Strip preview */}
+        <PhotoStrip
+          frames={frames}
+          activeIndex={activeIndex}
+        />
+      </div>
 
         {/* Controls */}
         <div className="flex flex-col items-center gap-6">

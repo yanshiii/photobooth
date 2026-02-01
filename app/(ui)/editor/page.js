@@ -69,10 +69,8 @@ export default function EditorPage() {
               <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl p-4 sm:p-6 shadow-2xl shadow-zinc-900/10 ring-1 ring-zinc-900/5">
               <div className="mb-8">
                 <PhotoStrip
-                  images={capturedImages}
+                  frames={frames}
                   activeIndex={activeIndex}
-                  onSelect={setActiveIndex}
-                  onRetake={retakeActive}
                 />
               </div>
                 <KonvaStage

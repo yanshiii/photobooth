@@ -1,54 +1,51 @@
 "use client";
 
+import clsx from "clsx";
+
 export default function PhotoStrip({
-  images,
+  frames,
   activeIndex,
-  onSelect,
-  onRetake,
+  aspectRatio = 3 / 4, // width / height of each photo
 }) {
   return (
-    <div className="flex gap-3 justify-center items-center">
-      {images.map((img, idx) => {
-        const isActive = idx === activeIndex;
+    <div
+      className="
+        flex flex-col
+        bg-white
+        rounded-xl
+        shadow-xl
+        overflow-hidden
+      "
+    >
+      {frames.map((frame, index) => (
+        <div
+          key={index}
+          className={clsx(
+            "relative w-full bg-zinc-100 border-b last:border-b-0",
+            index === activeIndex && "ring-2 ring-emerald-500"
+          )}
+          style={{
+            aspectRatio: aspectRatio,
+          }}
+        >
+          {frame ? (
+            <img
+              src={URL.createObjectURL(frame)}
+              alt={`Frame ${index + 1}`}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-zinc-400 text-sm">
+              Photo {index + 1}
+            </div>
+          )}
 
-        return (
-          <button
-            key={idx}
-            onClick={() => onSelect(idx)}
-            className={`
-              relative h-20 w-14 rounded-lg overflow-hidden
-              border transition-all
-              ${isActive
-                ? "border-emerald-400 ring-2 ring-emerald-400/40"
-                : "border-white/20 opacity-70 hover:opacity-100"}
-            `}
-          >
-            {img ? (
-              <img
-                src={URL.createObjectURL(img)}
-                alt={`Photo ${idx + 1}`}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="h-full w-full flex items-center justify-center bg-white/5 text-white/40 text-sm">
-                {idx + 1}
-              </div>
-            )}
-
-            {img && isActive && onRetake && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRetake();
-                }}
-                className="absolute top-1 right-1 bg-black/60 text-white text-xs rounded px-1.5 py-0.5"
-              >
-                Retake
-              </button>
-            )}
-          </button>
-        );
-      })}
+          {/* Index badge */}
+          <div className="absolute top-2 left-2 text-xs bg-black/60 text-white px-2 py-0.5 rounded-full">
+            {index + 1}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
