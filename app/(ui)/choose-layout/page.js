@@ -1,15 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { layouts } from "./layouts";
 import LayoutCard from "./LayoutCard";
 import { useBoothStore } from "@/store/boothStore";
 
 export default function ChooseLayoutPage() {
   const router = useRouter();
+  const [layouts, setLayouts] = useState([]);
   const [selectedLayout, setSelectedLayout] = useState(null);
-  const { setLayout } = useBoothStore();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function loadLayouts() {
+      try {
+        const res = await fetch("/api/layouts");
+        if (!res.ok) throw new Error("Failed to load layouts");
+
+        const data = await res.json();
+        setLayouts(data.layouts);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadLayouts();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-slate-500">
+        Loading layouts…
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500">
+        {error}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 relative overflow-hidden">
