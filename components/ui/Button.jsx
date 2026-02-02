@@ -2,37 +2,81 @@
 
 import { motion } from "framer-motion";
 
+/**
+ * Button — Ruby System
+ *
+ * Variants:
+ * - primary: Continue (animated, ripple, ceremonial)
+ * - secondary: Retake
+ * - ghost: Utility
+ * - destructive: Start over
+ */
+
 export default function Button({
   children,
   onClick,
   variant = "primary",
+  size = "md",
+  disabled = false,
   className = "",
 }) {
+  const base =
+    "relative inline-flex items-center justify-center font-medium transition-all focus-visible:outline-none";
+
+  const sizes = {
+    sm: "px-4 py-2 text-xs",
+    md: "px-6 py-3 text-sm",
+    lg: "px-8 py-4 text-base",
+  };
+
   const variants = {
-    primary:
-      "bg-gradient-to-br from-emerald-500 to-cyan-500 text-white shadow-[0_10px_30px_-10px_rgba(16,185,129,0.6)]",
-    secondary:
-      "bg-white/10 text-white border border-white/20 backdrop-blur",
-    ghost:
-      "bg-transparent text-white/70 hover:text-white",
+    primary: `
+      bg-gradient-to-br from-ruby-500 to-ruby-700
+      text-white
+      shadow-ruby
+      overflow-hidden
+    `,
+    secondary: `
+      bg-transparent
+      text-ruby-400
+      border border-ruby-500/40
+      hover:bg-ruby-500/10
+    `,
+    ghost: `
+      bg-transparent
+      text-white/50
+      hover:text-white/80
+    `,
+    destructive: `
+      bg-transparent
+      text-ruby-300
+      border border-ruby-900/40
+      hover:bg-ruby-900/30
+    `,
   };
 
   return (
     <motion.button
       onClick={onClick}
-      whileHover={{ y: -2 }}
-      whileTap={{ scale: 0.96 }}
-      transition={{ duration: 0.15 }}
+      disabled={disabled}
+      whileTap={!disabled ? { scale: 0.96 } : undefined}
       className={`
-        px-5 py-3
-        rounded-xl
-        text-sm font-medium
-        transition-shadow
+        ${base}
+        ${sizes[size]}
         ${variants[variant]}
+        ${disabled ? "opacity-40 pointer-events-none" : ""}
+        rounded-md
         ${className}
       `}
     >
-      {children}
+      {/* Ripple ONLY for primary */}
+      {variant === "primary" && (
+        <span className="absolute inset-0 rounded-full animate-rubyRipple" />
+      )}
+
+      <span className="relative z-10 tracking-wide uppercase">
+        {children}
+      </span>
     </motion.button>
   );
 }

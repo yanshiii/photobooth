@@ -51,16 +51,24 @@ export const useBoothStore = create((set, get) => ({
 
   retakeCurrent: () => {
     const { frames, activeIndex } = get();
-    if (!frames.length) return;
+
+    // determine which index to retake
+    const indexToClear =
+      frames[activeIndex] !== null
+        ? activeIndex
+        : Math.max(activeIndex - 1, 0);
+
+    if (!frames[indexToClear]) return;
 
     const nextFrames = [...frames];
-    nextFrames[activeIndex] = null;
+    nextFrames[indexToClear] = null;
 
     set({
       frames: nextFrames,
-      activeIndex,
+      activeIndex: indexToClear, // move cursor back correctly
     });
   },
+
 
   retakeAll: () => {
     const { layout } = get();
