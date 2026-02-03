@@ -81,7 +81,7 @@ export default function BoothPage() {
           </section>
 
           {/* CAMERA */}
-          <section className="order-1 lg:order-2 flex flex-col items-center gap-6">
+          <section className="order-1 lg:order-2 flex flex-col items-center gap-6 lg:-mt-8">
             <CameraSurface>
               <CameraView
                 videoRef={videoRef}
@@ -97,16 +97,18 @@ export default function BoothPage() {
             />
 
             {!isComplete && (
-              <CaptureButton
-                videoRef={videoRef}
-                isMirrored={isMirrored}
-                filter={FILTER_CSS_MAP[activeFilterId]}
-                onCapture={handleCapture}
-              />
+              <div className="flex flex-col items-center gap-8">
+                <CaptureButton
+                  videoRef={videoRef}
+                  isMirrored={isMirrored}
+                  filter={FILTER_CSS_MAP[activeFilterId]}
+                  onCapture={handleCapture}
+                />
+              </div>
             )}
 
             {/* CONTROLS */}
-            <div className="flex gap-2 flex-wrap justify-center">
+            <div className="mt-5 flex gap-2 flex-wrap justify-center">
               <Button variant="ghost" size="sm" onClick={toggleMirror}>
                 {isMirrored ? "Disable mirror" : "Enable mirror"}
               </Button>

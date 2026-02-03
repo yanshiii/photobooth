@@ -3,10 +3,10 @@
 import { motion } from "framer-motion";
 
 /**
- * Button — Ruby System
+ * Button — Ruby System with Shimmer Effect
  *
  * Variants:
- * - primary: Continue (animated, ripple, ceremonial)
+ * - primary: Continue (shimmer sweep, ceremonial)
  * - secondary: Retake
  * - ghost: Utility
  * - destructive: Start over
@@ -21,37 +21,43 @@ export default function Button({
   className = "",
 }) {
   const base =
-    "relative inline-flex items-center justify-center font-medium transition-all focus-visible:outline-none";
+    "relative inline-flex items-center justify-center font-semibold transition-all focus-visible:outline-none overflow-hidden";
 
   const sizes = {
-    sm: "px-4 py-2 text-xs",
-    md: "px-6 py-3 text-sm",
-    lg: "px-8 py-4 text-base",
+    sm: "px-5 py-2.5 text-xs",
+    md: "px-7 py-3.5 text-sm",
+    lg: "px-9 py-4.5 text-base",
   };
 
   const variants = {
     primary: `
-      bg-gradient-to-br from-ruby-500 to-ruby-700
+      bg-gradient-to-r from-ruby-700 via-ruby-600 to-ruby-700
       text-white
       shadow-ruby
-      overflow-hidden
+      bg-[length:200%_100%]
+      hover:bg-[position:100%_0]
+      transition-[background-position]
+      duration-500
     `,
     secondary: `
       bg-transparent
-      text-ruby-400
-      border border-ruby-500/40
-      hover:bg-ruby-500/10
+      text-ruby-200
+      border border-ruby-800/70
+      hover:border-ruby-700
+      hover:bg-ruby-900/20
     `,
     ghost: `
       bg-transparent
-      text-white/50
-      hover:text-white/80
+      text-white/60
+      hover:text-white/90
+      hover:bg-white/5
     `,
     destructive: `
       bg-transparent
-      text-ruby-300
-      border border-ruby-900/40
-      hover:bg-ruby-900/30
+      text-rose-400
+      border border-rose-500/40
+      hover:bg-rose-900/30
+      shadow-[0_3px_12px_rgba(244,63,94,0.2)]
     `,
   };
 
@@ -65,16 +71,23 @@ export default function Button({
         ${sizes[size]}
         ${variants[variant]}
         ${disabled ? "opacity-40 pointer-events-none" : ""}
-        rounded-md
+        rounded-lg
         ${className}
       `}
     >
-      {/* Ripple ONLY for primary */}
+      {/* Shimmer light sweep - ONLY for primary */}
       {variant === "primary" && (
-        <span className="absolute inset-0 rounded-full animate-rubyRipple" />
+        <span 
+          className="absolute inset-0 -translate-x-full hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+        />
       )}
-
-      <span className="relative z-10 tracking-wide uppercase">
+      
+      {/* Subtle glow for secondary on hover */}
+      {variant === "secondary" && (
+        <span className="absolute inset-0 rounded-lg bg-ruby-700/0 hover:bg-ruby-700/10 transition-all duration-300" />
+      )}
+      
+      <span className="relative z-10 tracking-wider uppercase font-bold">
         {children}
       </span>
     </motion.button>

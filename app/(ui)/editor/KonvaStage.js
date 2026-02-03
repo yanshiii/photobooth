@@ -8,20 +8,18 @@ import {
   Transformer,
   Group,
   Line,
+  Text,
 } from "react-konva";
 import { useEffect, useRef, useState } from "react";
-import { FRAME_WIDTH, FRAME_HEIGHT } from "@/styles/frame";
+import { STRIP } from "@/styles/stripGeometry";
 import {
   RotateIcon,
   DeleteIcon,
   HandleBackground,
   DeleteBackground,
 } from "@/components/ui/StickerIcons";
+import { useBoothStore } from "@/store/boothStore";
 
-/* Booth-matching paper values */
-const PAPER_PADDING_X = 24;
-const PAPER_PADDING_Y = 24;
-const SEPARATOR_HEIGHT = 12;
 const DELETE_ZONE_HEIGHT = 60;
 
 /* ================= STICKER ================= */
@@ -32,8 +30,8 @@ function StickerImage({
   onDelete,
   isSelected,
   onSelect,
-  contentHeight,
-  deleteZoneY,
+  setIsDraggingSticker,
+  paperHeight,
 }) {
   const shapeRef = useRef(null);
   const trRef = useRef(null);
@@ -42,31 +40,34 @@ function StickerImage({
   const [isDragging, setIsDragging] = useState(false);
   const [isOverDelete, setIsOverDelete] = useState(false);
 
-  /* Load sticker image */
+  function attachTransformer() {
+    const tr = trRef.current;
+    const node = shapeRef.current;
+    if (!tr || !node) return;
+    tr.nodes([node]);
+    tr.getLayer()?.batchDraw();
+  }
+
   useEffect(() => {
     const img = new window.Image();
     img.src = sticker.src;
     img.onload = () => setImage(img);
   }, [sticker.src]);
 
-  /* Attach transformer immediately */
   useEffect(() => {
-    if (!isSelected) return;
-
-    const tr = trRef.current;
-    const node = shapeRef.current;
-    if (!tr || !node) return;
-
-    tr.nodes([]);              // 🔑 force reset
-    tr.nodes([node]);          // 🔑 re-attach
-    tr.getLayer()?.batchDraw();
+    if (isSelected) requestAnimationFrame(attachTransformer);
   }, [isSelected, sticker.id]);
 
   if (!image) return null;
 
+  const handleSelect = (e) => {
+    e.cancelBubble = true;
+    onSelect();
+    requestAnimationFrame(attachTransformer);
+  };
+
   return (
     <>
-      {/* STICKER */}
       <Image
         ref={shapeRef}
         image={image}
@@ -80,25 +81,23 @@ function StickerImage({
         shadowEnabled
         shadowColor={isOverDelete ? "#ef4444" : "#7f1d1d"}
         shadowBlur={isSelected ? 12 : 6}
-        onMouseDown={(e) => {
-          e.cancelBubble = true;   // 🔑 CRITICAL
-          onSelect();
+        onClick={handleSelect}
+        onTap={handleSelect}
+        onDragStart={() => {
+          setIsDragging(true);
+          setIsDraggingSticker(true);
         }}
-
-        onTap={(e) => {
-          e.cancelBubble = true;   // 🔑 CRITICAL
-          onSelect();
-        }}
-        onDragStart={() => setIsDragging(true)}
         onDragMove={(e) => {
-          const y = e.target.y();
-          setIsOverDelete(y + sticker.height > deleteZoneY);
+          const bottom = e.target.y() + sticker.height;
+          setIsOverDelete(bottom > paperHeight);
         }}
         onDragEnd={(e) => {
           setIsDragging(false);
+          setIsDraggingSticker(false);
           setIsOverDelete(false);
 
-          if (e.target.y() + sticker.height > deleteZoneY) {
+          const bottom = e.target.y() + sticker.height;
+          if (bottom > paperHeight) {
             onDelete(sticker.id);
             return;
           }
@@ -124,7 +123,6 @@ function StickerImage({
         }}
       />
 
-      {/* RESIZE */}
       {isSelected && (
         <Transformer
           ref={trRef}
@@ -140,61 +138,58 @@ function StickerImage({
         />
       )}
 
-      {/* ROTATE HANDLE */}
       {isSelected && !isDragging && (
-        <Group>
-          <Line
-            points={[
-              sticker.x + sticker.width / 2,
-              sticker.y,
-              sticker.x + sticker.width / 2,
-              sticker.y - 24,
-            ]}
-            stroke="#7f1d1d"
-            dash={[3, 3]}
-          />
+        <>
+          <Group>
+            <Line
+              points={[
+                sticker.x + sticker.width / 2,
+                sticker.y,
+                sticker.x + sticker.width / 2,
+                sticker.y - 24,
+              ]}
+              stroke="#7f1d1d"
+              dash={[3, 3]}
+            />
+            <Group
+              x={sticker.x + sticker.width / 2}
+              y={sticker.y - 28}
+              draggable
+              onDragMove={(e) => {
+                const stage = e.target.getStage();
+                const p = stage.getPointerPosition();
+                if (!p) return;
+
+                const cx = sticker.x + sticker.width / 2;
+                const cy = sticker.y + sticker.height / 2;
+
+                const angle =
+                  (Math.atan2(p.y - cy, p.x - cx) * 180) / Math.PI;
+
+                onUpdate(sticker.id, { rotation: angle + 90 });
+              }}
+              onDragEnd={(e) =>
+                e.target.position({
+                  x: sticker.x + sticker.width / 2,
+                  y: sticker.y - 28,
+                })
+              }
+            >
+              <HandleBackground radius={11} />
+              <RotateIcon x={-7} y={-7} />
+            </Group>
+          </Group>
 
           <Group
-            x={sticker.x + sticker.width / 2}
-            y={sticker.y - 28}
-            draggable
-            onDragMove={(e) => {
-              const stage = e.target.getStage();
-              const p = stage.getPointerPosition();
-              if (!p) return;
-
-              const cx = sticker.x + sticker.width / 2;
-              const cy = sticker.y + sticker.height / 2;
-
-              const angle =
-                (Math.atan2(p.y - cy, p.x - cx) * 180) / Math.PI;
-
-              onUpdate(sticker.id, { rotation: angle + 90 });
-            }}
-            onDragEnd={(e) =>
-              e.target.position({
-                x: sticker.x + sticker.width / 2,
-                y: sticker.y - 28,
-              })
-            }
+            x={sticker.x + sticker.width + 8}
+            y={sticker.y - 8}
+            onClick={() => onDelete(sticker.id)}
+            onTap={() => onDelete(sticker.id)}
           >
-            <HandleBackground radius={11} />
-            <RotateIcon x={-7} y={-7} />
+            <DeleteBackground radius={11} />
+            <DeleteIcon x={-7} y={-7} />
           </Group>
-        </Group>
-      )}
-
-      {/* DELETE BUTTON */}
-      {isSelected && !isDragging && (
-        <Group
-          x={sticker.x + sticker.width + 8}
-          y={sticker.y - 8}
-          onClick={() => onDelete(sticker.id)}
-          onTap={() => onDelete(sticker.id)}
-        >
-          <DeleteBackground radius={11} />
-          <DeleteIcon x={-7} y={-7} />
-        </Group>
+        </>
       )}
     </>
   );
@@ -211,20 +206,61 @@ export default function KonvaStage({
   onSelect,
   onClearSelection,
   onDelete,
+  isExporting = false,
 }) {
   const containerRef = useRef(null);
   const [images, setImages] = useState([]);
   const [scale, setScale] = useState(1);
+  const [isDraggingSticker, setIsDraggingSticker] = useState(false);
 
-  const contentHeight =
-    frames.length * FRAME_HEIGHT +
-    (frames.length - 1) * SEPARATOR_HEIGHT;
+  const frameW = STRIP.FRAME_WIDTH();
+  const frameH = STRIP.FRAME_HEIGHT();
 
-  const paperWidth = FRAME_WIDTH + PAPER_PADDING_X * 2;
-  const paperHeight = contentHeight + PAPER_PADDING_Y * 2;
+  const paperWidth = STRIP.WIDTH;
+  const paperHeight = STRIP.TOTAL_HEIGHT(frames.length);
   const deleteZoneY = paperHeight - DELETE_ZONE_HEIGHT;
 
-  /* Load frames */
+  const stripBackground = useBoothStore((s) => s.stripBackground);
+  const memoryText = useBoothStore((s) => s.memoryText);
+  const memoryDateEnabled = useBoothStore((s) => s.memoryDateEnabled);
+  const memoryTextColor = useBoothStore((s) => s.memoryTextColor);
+  const memoryFont = useBoothStore((s) => s.memoryFont);
+  const memoryAllCaps = useBoothStore((s) => s.memoryAllCaps);
+
+  /* -------- FIX: DEFINE DATE FIRST -------- */
+  const formattedDate = new Date().toLocaleDateString();
+
+  const hasMessage = memoryText.trim().length > 0;
+  const showDate = memoryDateEnabled;
+
+  const finalMessage = memoryAllCaps
+    ? memoryText.toUpperCase()
+    : memoryText;
+
+  const finalDate = memoryAllCaps
+    ? formattedDate.toUpperCase()
+    : formattedDate;
+
+  const FONT_CONFIG = {
+    Arial: { family: "Arial", size: 15, lineHeight: 1.15, letterSpacing: 0 },
+    Inter: { family: "Inter", size: 14.5, lineHeight: 1.2, letterSpacing: 0 },
+    "Courier New": {
+      family: "Courier New",
+      size: 15,
+      lineHeight: 1.15,
+      letterSpacing: -0.3,
+    },
+  };
+
+  const font = FONT_CONFIG[memoryFont] ?? FONT_CONFIG.Arial;
+
+  const BASE_Y = paperHeight - STRIP.BOTTOM_MEMORY_HEIGHT;
+  const CENTER_Y = BASE_Y + STRIP.BOTTOM_MEMORY_HEIGHT / 2;
+
+  const MESSAGE_Y = BASE_Y + 14;
+  const DATE_Y_WITH_MESSAGE = BASE_Y + 36;
+  const DATE_Y_ALONE = CENTER_Y - 6;
+
   useEffect(() => {
     const urls = [];
     frames.forEach((frame, i) => {
@@ -239,7 +275,6 @@ export default function KonvaStage({
     return () => urls.forEach(URL.revokeObjectURL);
   }, [frames]);
 
-  /* Scale to viewport */
   useEffect(() => {
     if (!containerRef.current) return;
     setScale(Math.min(1, containerRef.current.clientHeight / paperHeight));
@@ -256,53 +291,130 @@ export default function KonvaStage({
           if (e.target === e.target.getStage()) onClearSelection();
         }}
       >
-        <Layer>
-          {/* Paper */}
-          <Rect width={paperWidth} height={paperHeight} fill="#fff" />
-
-          {/* Delete zone */}
-          <Rect
-            x={0}
-            y={deleteZoneY}
-            width={paperWidth}
-            height={DELETE_ZONE_HEIGHT}
-            fill="rgba(239,68,68,0.08)"
-            listening={false}
-          />
-
-          {/* Frames */}
-          {images.map(
-            (img, i) =>
-              img && (
-                <Image
-                  key={i}
-                  image={img}
-                  x={PAPER_PADDING_X}
-                  y={
-                    PAPER_PADDING_Y +
-                    i * (FRAME_HEIGHT + SEPARATOR_HEIGHT)
-                  }
-                  width={FRAME_WIDTH}
-                  height={FRAME_HEIGHT}
-                  listening={false}
-                />
-              )
-          )}
-
-          {/* Stickers */}
-          {stickers.map((s) => (
-            <StickerImage
-              key={s.id}
-              sticker={s}
-              isSelected={s.id === selectedStickerId}
-              onSelect={() => onSelect(s.id)}
-              onUpdate={onUpdate}
-              onDelete={onDelete}
-              contentHeight={contentHeight}
-              deleteZoneY={deleteZoneY}
+        <>
+          <Layer>
+            <Rect width={paperWidth} height={paperHeight} fill={stripBackground} />
+            <Rect
+              x={0}
+              y={paperHeight - STRIP.BOTTOM_MEMORY_HEIGHT}
+              width={paperWidth}
+              height={STRIP.BOTTOM_MEMORY_HEIGHT}
+              fill={stripBackground}
             />
-          ))}
-        </Layer>
+
+            {hasMessage && (
+              <Text
+                text={finalMessage}
+                x={0}
+                y={MESSAGE_Y}
+                width={paperWidth}
+                align="center"
+                fontFamily={font.family}
+                fontSize={font.size}
+                lineHeight={font.lineHeight}
+                letterSpacing={font.letterSpacing}
+                fill={memoryTextColor}
+              />
+            )}
+
+            {showDate && (
+              <Text
+                text={finalDate}
+                x={0}
+                y={hasMessage ? DATE_Y_WITH_MESSAGE : DATE_Y_ALONE}
+                width={paperWidth}
+                align="center"
+                fontFamily={font.family}
+                fontSize={font.size - 3}
+                opacity={0.7}
+                fill={memoryTextColor}
+              />
+            )}
+
+            {images.map(
+              (img, i) =>
+                img && (
+                  <Image
+                    key={i}
+                    image={img}
+                    x={STRIP.PADDING_X}
+                    y={STRIP.PADDING_TOP + i * (frameH + STRIP.SEPARATOR)}
+                    width={frameW}
+                    height={frameH}
+                  />
+                )
+            )}
+
+            {isExporting &&
+              stickers.map((s) => (
+                <Image
+                  key={s.id}
+                  image={(() => {
+                    const img = new window.Image();
+                    img.src = s.src;
+                    return img;
+                  })()}
+                  x={s.x}
+                  y={s.y}
+                  width={s.width}
+                  height={s.height}
+                  rotation={s.rotation}
+                />
+              ))}
+          </Layer>
+
+          <Layer>
+            {isDraggingSticker && (
+              <Group>
+                <Rect
+                  x={0}
+                  y={deleteZoneY}
+                  width={paperWidth}
+                  height={DELETE_ZONE_HEIGHT}
+                  fill="rgba(220,38,38,0.85)"
+                />
+                <Line
+                  points={[0, deleteZoneY, paperWidth, deleteZoneY]}
+                  stroke="#fff"
+                  strokeWidth={2}
+                  dash={[8, 6]}
+                />
+                <Text
+                  text="🗑"
+                  x={0}
+                  y={deleteZoneY + 6}
+                  width={paperWidth}
+                  align="center"
+                  fontSize={28}
+                />
+                <Text
+                  text="DROP HERE TO DELETE"
+                  x={0}
+                  y={deleteZoneY + 36}
+                  width={paperWidth}
+                  align="center"
+                  fontSize={12}
+                  fontStyle="bold"
+                  fill="#ffffff"
+                  letterSpacing={1.5}
+                />
+              </Group>
+            )}
+
+            {stickers.map((s) => (
+              <StickerImage
+                key={s.id}
+                sticker={s}
+                isSelected={s.id === selectedStickerId}
+                onSelect={() => onSelect(s.id)}
+                onUpdate={onUpdate}
+                onDelete={onDelete}
+                setIsDraggingSticker={setIsDraggingSticker}
+                paperHeight={paperHeight}
+              />
+            ))}
+          </Layer>
+        </>
       </Stage>
     </div>
   );

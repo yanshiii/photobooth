@@ -1,9 +1,16 @@
 export function useKonvaExport(stageRef) {
   async function exportImage() {
     return new Promise((resolve) => {
-      stageRef.current.toBlob({
+      const stage = stageRef.current;
+      if (!stage) return;
+
+      // 👇 export ONLY the content layer
+      const contentLayer = stage.findOne("#content-layer");
+      if (!contentLayer) return;
+
+      contentLayer.toBlob({
         mimeType: "image/png",
-        quality: 1,
+        pixelRatio: 2, // sharp export
         callback: (blob) => {
           resolve(blob);
         },

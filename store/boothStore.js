@@ -15,6 +15,7 @@ export const useBoothStore = create((set, get) => ({
       activeIndex: 0,
       stickers: [],
       selectedStickerId: null,
+      finalImage: null, // ✅ RESET FINAL IMAGE ON NEW SESSION
       filters: {
         brightness: 100,
         contrast: 100,
@@ -52,7 +53,6 @@ export const useBoothStore = create((set, get) => ({
   retakeCurrent: () => {
     const { frames, activeIndex } = get();
 
-    // determine which index to retake
     const indexToClear =
       frames[activeIndex] !== null
         ? activeIndex
@@ -65,10 +65,9 @@ export const useBoothStore = create((set, get) => ({
 
     set({
       frames: nextFrames,
-      activeIndex: indexToClear, // move cursor back correctly
+      activeIndex: indexToClear,
     });
   },
-
 
   retakeAll: () => {
     const { layout } = get();
@@ -77,9 +76,54 @@ export const useBoothStore = create((set, get) => ({
     set({
       frames: Array(layout.slots).fill(null),
       activeIndex: 0,
+      finalImage: null, // ✅ ALSO RESET HERE
     });
   },
 
+  /* ---------------------------------
+  * Strip Background
+  * --------------------------------- */
+  stripBackground: "#ffffff",
+  setStripBackground: (color) => set({ stripBackground: color }),
+
+  /* ---------------------------------
+  * Memory Text / Date
+  * --------------------------------- */
+  memoryText: "",
+  setMemoryText: (text) =>
+    set({
+      memoryText: text.slice(0, 25), // 🔒 HARD LIMIT
+    }),
+
+  memoryDateEnabled: true,
+  toggleMemoryDate: () =>
+    set((s) => ({ memoryDateEnabled: !s.memoryDateEnabled })),
+
+  /* ---------------------------------
+  * Memory Text Color
+  * --------------------------------- */
+  memoryTextColor: "#000000", // ✅ DEFAULT BLACK
+  setMemoryTextColor: (color) =>
+    set({ memoryTextColor: color }),
+
+  /* ---------------------------------
+  * Memory Text Style
+  * --------------------------------- */
+  memoryFont: "Arial",
+  setMemoryFont: (font) => set({ memoryFont: font }),
+
+  memoryAllCaps: false,
+  toggleMemoryAllCaps: () =>
+    set((s) => ({ memoryAllCaps: !s.memoryAllCaps })),
+
+  applyTextPreset: (preset) =>
+    set({
+      memoryFont: preset.font,
+      memoryAllCaps: preset.allCaps,
+      memoryTextColor: preset.color,
+      memoryDateEnabled: preset.showDate,
+    }),
+  
   /* ---------------------------------
    * Derived state (SAFE)
    * --------------------------------- */
@@ -133,6 +177,13 @@ export const useBoothStore = create((set, get) => ({
 
   selectSticker: (id) => set({ selectedStickerId: id }),
   clearSelection: () => set({ selectedStickerId: null }),
+
+  /* ---------------------------------
+   * FINAL EXPORT (RESULT PAGE)
+   * --------------------------------- */
+  finalImage: null,
+  setFinalImage: (blob) => set({ finalImage: blob }),
+  clearFinalImage: () => set({ finalImage: null }),
 }));
 
 /* ---------------------------------

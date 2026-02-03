@@ -1,8 +1,10 @@
-import { FRAME_RATIO, FRAME_WIDTH } from "@/styles/frame";
+"use client";
+
+import { STRIP } from "@/styles/stripGeometry";
 
 /**
  * CameraSurface Component
- * 
+ *
  * Visual:
  * - Clean, minimal border
  * - Subtle ruby accent ring
@@ -15,7 +17,7 @@ export default function CameraSurface({ children }) {
     <div
       style={{
         width: "100%",
-        maxWidth: FRAME_WIDTH,
+        maxWidth: STRIP.WIDTH, // ✅ single source of truth
         boxShadow: `
           0 16px 64px -12px rgba(0, 0, 0, 0.6),
           0 8px 32px -8px rgba(100, 13, 20, 0.2)
