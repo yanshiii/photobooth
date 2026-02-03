@@ -1,52 +1,144 @@
 import { create } from "zustand";
 
 export const useBoothStore = create((set, get) => ({
-  /* ---------------- Layout & Capture Flow ---------------- */
+  /* ---------------------------------
+   * Layout / Session
+   * --------------------------------- */
+  layout: null, // { id, slots, sessionId }
 
-  layout: null,                 // selected layout object
-  capturedImages: [],            // Blob[] — replaces rawImage
-  currentIndex: 0,               // which slot user is capturing
-  isMirrored: true,
+  setLayout: (layout) => {
+    if (!layout) return;
 
-  setLayout: (layout) =>
     set({
       layout,
-      capturedImages: [],
-      currentIndex: 0,
-    }),
-
-  addCapturedImage: (blob) => {
-    const { capturedImages, currentIndex } = get();
-
-    set({
-      capturedImages: [...capturedImages, blob],
-      currentIndex: currentIndex + 1,
+      frames: Array(layout.slots).fill(null),
+      activeIndex: 0,
+      stickers: [],
+      selectedStickerId: null,
+      finalImage: null, // ✅ RESET FINAL IMAGE ON NEW SESSION
+      filters: {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        grayscale: 0,
+      },
     });
   },
 
-  retakeAtIndex: (index, blob) =>
-    set((state) => {
-      const next = [...state.capturedImages];
-      next[index] = blob;
-      return { capturedImages: next };
-    }),
+  /* ---------------------------------
+   * Strip frames (CORE)
+   * --------------------------------- */
+  frames: [],          // Array<Blob | null>
+  activeIndex: 0,      // which slot is active
 
-  resetBooth: () =>
+  setActiveIndex: (index) => {
+    const { frames } = get();
+    if (index < 0 || index >= frames.length) return;
+    set({ activeIndex: index });
+  },
+
+  addCapturedImage: (blob) => {
+    const { frames, activeIndex } = get();
+    if (!frames.length || activeIndex >= frames.length) return;
+
+    const nextFrames = [...frames];
+    nextFrames[activeIndex] = blob;
+
     set({
-      capturedImages: [],
-      currentIndex: 0,
+      frames: nextFrames,
+      activeIndex: Math.min(activeIndex + 1, frames.length - 1),
+    });
+  },
+
+  retakeCurrent: () => {
+    const { frames, activeIndex } = get();
+
+    const indexToClear =
+      frames[activeIndex] !== null
+        ? activeIndex
+        : Math.max(activeIndex - 1, 0);
+
+    if (!frames[indexToClear]) return;
+
+    const nextFrames = [...frames];
+    nextFrames[indexToClear] = null;
+
+    set({
+      frames: nextFrames,
+      activeIndex: indexToClear,
+    });
+  },
+
+  retakeAll: () => {
+    const { layout } = get();
+    if (!layout) return;
+
+    set({
+      frames: Array(layout.slots).fill(null),
+      activeIndex: 0,
+      finalImage: null, // ✅ ALSO RESET HERE
+    });
+  },
+
+  /* ---------------------------------
+  * Strip Background
+  * --------------------------------- */
+  stripBackground: "#ffffff",
+  setStripBackground: (color) => set({ stripBackground: color }),
+
+  /* ---------------------------------
+  * Memory Text / Date
+  * --------------------------------- */
+  memoryText: "",
+  setMemoryText: (text) =>
+    set({
+      memoryText: text.slice(0, 25), // 🔒 HARD LIMIT
     }),
 
+  memoryDateEnabled: true,
+  toggleMemoryDate: () =>
+    set((s) => ({ memoryDateEnabled: !s.memoryDateEnabled })),
+
+  /* ---------------------------------
+  * Memory Text Color
+  * --------------------------------- */
+  memoryTextColor: "#000000", // ✅ DEFAULT BLACK
+  setMemoryTextColor: (color) =>
+    set({ memoryTextColor: color }),
+
+  /* ---------------------------------
+  * Memory Text Style
+  * --------------------------------- */
+  memoryFont: "Arial",
+  setMemoryFont: (font) => set({ memoryFont: font }),
+
+  memoryAllCaps: false,
+  toggleMemoryAllCaps: () =>
+    set((s) => ({ memoryAllCaps: !s.memoryAllCaps })),
+
+  applyTextPreset: (preset) =>
+    set({
+      memoryFont: preset.font,
+      memoryAllCaps: preset.allCaps,
+      memoryTextColor: preset.color,
+      memoryDateEnabled: preset.showDate,
+    }),
+  
+  /* ---------------------------------
+   * Derived state (SAFE)
+   * --------------------------------- */
+  isComplete: false,
+
+  /* ---------------------------------
+   * Camera / UX
+   * --------------------------------- */
+  isMirrored: true,
   toggleMirror: () =>
     set((s) => ({ isMirrored: !s.isMirrored })),
 
-  /* ---------------- Editor Output ---------------- */
-
-  finalImage: null,
-  setFinalImage: (img) => set({ finalImage: img }),
-
-  /* ---------------- Filters ---------------- */
-
+  /* ---------------------------------
+   * GLOBAL filters (strip-wide)
+   * --------------------------------- */
   filters: {
     brightness: 100,
     contrast: 100,
@@ -54,32 +146,54 @@ export const useBoothStore = create((set, get) => ({
     grayscale: 0,
   },
 
-  setFilters: (f) =>
-    set((s) => ({ filters: { ...s.filters, ...f } })),
+  setFilters: (updates) =>
+    set((s) => ({
+      filters: { ...s.filters, ...updates },
+    })),
 
-  /* ---------------- Stickers ---------------- */
-
+  /* ---------------------------------
+   * GLOBAL stickers (strip-wide)
+   * --------------------------------- */
   stickers: [],
   selectedStickerId: null,
 
   addSticker: (sticker) =>
-    set((state) => ({
-      stickers: [...state.stickers, sticker],
+    set((s) => ({
+      stickers: [...s.stickers, sticker],
     })),
 
   updateSticker: (id, updates) =>
-    set((state) => ({
-      stickers: state.stickers.map((s) =>
-        s.id === id ? { ...s, ...updates } : s
+    set((s) => ({
+      stickers: s.stickers.map((st) =>
+        st.id === id ? { ...st, ...updates } : st
       ),
     })),
 
   deleteSticker: (id) =>
-    set((state) => ({
-      stickers: state.stickers.filter((s) => s.id !== id),
+    set((s) => ({
+      stickers: s.stickers.filter((st) => st.id !== id),
       selectedStickerId: null,
     })),
 
   selectSticker: (id) => set({ selectedStickerId: id }),
   clearSelection: () => set({ selectedStickerId: null }),
+
+  /* ---------------------------------
+   * FINAL EXPORT (RESULT PAGE)
+   * --------------------------------- */
+  finalImage: null,
+  setFinalImage: (blob) => set({ finalImage: blob }),
+  clearFinalImage: () => set({ finalImage: null }),
 }));
+
+/* ---------------------------------
+ * SIDE EFFECT: keep isComplete in sync
+ * --------------------------------- */
+useBoothStore.subscribe(
+  (state) => state.frames,
+  (frames) => {
+    useBoothStore.setState({
+      isComplete: frames.length > 0 && frames.every(Boolean),
+    });
+  }
+);

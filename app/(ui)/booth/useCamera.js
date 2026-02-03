@@ -1,3 +1,4 @@
+// useCamera.js
 import { useEffect, useRef, useState } from "react";
 
 export function useCamera() {
@@ -17,7 +18,7 @@ export function useCamera() {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
-      } catch (err) {
+      } catch {
         setError("Camera access denied");
       }
     }

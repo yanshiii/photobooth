@@ -1,13 +1,15 @@
-export default function CameraView({ videoRef, isMirrored }) {
+export default function CameraView({ videoRef, isMirrored, filter }) {
   return (
     <video
       ref={videoRef}
       autoPlay
       playsInline
       muted
-      className={`absolute inset-0 w-full h-full object-cover ${
-        isMirrored ? "-scale-x-100" : ""
-      }`}
+      className={`
+        w-full h-full object-cover rounded-2xl
+        ${isMirrored ? "scale-x-[-1]" : ""}
+      `}
+      style={{ filter }}
     />
   );
 }

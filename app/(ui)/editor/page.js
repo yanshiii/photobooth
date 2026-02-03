@@ -1,18 +1,22 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useBoothStore } from "@/store/boothStore";
 import KonvaStage from "./KonvaStage";
 import StickerPicker from "./StickerPicker";
 import { useKonvaExport } from "./useKonvaExport";
+import Button from "@/components/ui/Button";
+import StripColorPicker from "@/components/ui/StripColorPicker";
+import StripTextControls from "@/components/ui/StripTextControls";
 
 export default function EditorPage() {
   const router = useRouter();
   const stageRef = useRef(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const {
-    rawImage,
+    frames,
     stickers,
     addSticker,
     updateSticker,
@@ -23,90 +27,132 @@ export default function EditorPage() {
     deleteSticker,
   } = useBoothStore();
 
-  const { exportImage } = useKonvaExport(stageRef);
-
-  async function handleDone() {
-    const blob = await exportImage();
-    setFinalImage(blob);
-    router.push("/result");
-  }
-
-  if (!rawImage) {
+  if (!frames || frames.every((img) => img === null)) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100 flex items-center justify-center p-6">
-        <div className="text-center">
-          <p className="text-zinc-600">No image captured</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center text-white/60">
+        No images captured
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-zinc-50 to-zinc-100 relative overflow-hidden">
-      {/* Gradient orbs */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-purple-200/30 to-pink-200/30 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-tr from-cyan-200/30 to-blue-200/30 rounded-full blur-3xl" />
-      
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        {/* Header */}
-        <div className="text-center mb-8 animate-fadeIn">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2 bg-gradient-to-r from-zinc-900 to-zinc-700 bg-clip-text text-transparent">
-            Customize Your Photo
-          </h1>
-          <p className="text-zinc-600">Add stickers and make it uniquely yours</p>
-        </div>
+  const { exportImage } = useKonvaExport(stageRef);
 
-        {/* Main Content */}
-        <div className="space-y-6 animate-slideUp">
-          {/* Canvas Container */}
-          <div className="flex justify-center">
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 rounded-3xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl p-4 sm:p-6 shadow-2xl shadow-zinc-900/10 ring-1 ring-zinc-900/5">
-                <KonvaStage
-                  stageRef={stageRef}
-                  imageBlob={rawImage}
-                  stickers={stickers}
-                  onUpdate={updateSticker}
-                  selectedStickerId={selectedStickerId}
-                  onSelect={selectSticker}
-                  onClearSelection={clearSelection}
-                  onDelete={deleteSticker}
+  async function handleDone() {
+    if (!stageRef.current) {
+      console.error("Stage ref missing");
+      return;
+    }
+
+    setIsExporting(true);
+    await new Promise((r) => requestAnimationFrame(r));
+
+    const blob = await exportImage();
+    if (!blob) {
+      console.error("Export failed");
+      setIsExporting(false);
+      return;
+    }
+
+    setFinalImage(blob);
+    setIsExporting(false);
+    router.push("/result");
+  }
+
+  return (
+    <div className="min-h-screen text-white relative overflow-hidden">
+      {/* HEADER */}
+      <header className="px-6 pt-10 pb-8 text-center">
+        <h1 className="font-display text-4xl sm:text-5xl mb-2">
+          Customize your strip
+        </h1>
+        <p className="text-white/50 text-sm">
+          Add stickers and refine your final look.
+        </p>
+      </header>
+
+      {/* MAIN */}
+      <main className="px-4 pb-10">
+        <div
+          className="
+            max-w-[1200px]
+            mx-auto
+            grid
+            grid-cols-1
+            lg:grid-cols-[420px_1fr]
+            gap-12
+            items-start
+          "
+        >
+          {/* LEFT — STRIP */}
+          <section className="flex justify-center">
+            <div className="max-h-[calc(100vh-220px)] flex items-center justify-center">
+              <KonvaStage
+                stageRef={stageRef}
+                frames={frames}
+                stickers={stickers}
+                onUpdate={updateSticker}
+                selectedStickerId={selectedStickerId}
+                onSelect={selectSticker}
+                onClearSelection={clearSelection}
+                onDelete={deleteSticker}
+                isExporting={isExporting}
+              />
+            </div>
+          </section>
+
+          {/* RIGHT — CONTROLS */}
+          <aside className="flex flex-col gap-8">
+            {/* STRIP COLOR */}
+            <div className="bg-black/20 backdrop-blur-md border border-white/10 rounded-3xl p-6">
+              <StripColorPicker />
+            </div>
+
+            {/* TEXT / DATE */}
+            <div className="bg-black/20 backdrop-blur-md border border-white/10 rounded-3xl p-6">
+              <h3 className="text-xs uppercase tracking-widest text-white/50 mb-4">
+                Text Style
+              </h3>
+              <StripTextControls />
+            </div>
+
+            {/* STICKERS */}
+            <div className="bg-black/20 backdrop-blur-md border border-white/10 rounded-3xl p-6">
+              <h3 className="text-xs uppercase tracking-widest text-white/50 mb-4">
+                Stickers
+              </h3>
+
+              {/* Scroll only on small screens */}
+              <div className="max-h-[260px] sm:max-h-none overflow-y-auto scrollbar-hide pr-1">
+                <StickerPicker
+                  onAdd={addSticker}
+                  selectSticker={selectSticker}
                 />
               </div>
             </div>
-          </div>
 
-          {/* Sticker Picker Section */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 shadow-lg shadow-zinc-900/5 animate-fadeIn" style={{ animationDelay: "200ms" }}>
-            <h3 className="font-semibold text-lg text-zinc-900 mb-4">Add Stickers</h3>
-            <StickerPicker onAdd={addSticker} />
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex justify-center gap-4 animate-fadeIn" style={{ animationDelay: "300ms" }}>
-            <button
-              onClick={() => router.back()}
-              className="rounded-full px-6 py-3 bg-white text-zinc-700 font-medium shadow-lg shadow-zinc-900/5 hover:shadow-xl hover:bg-zinc-50 transition-all duration-300 ring-1 ring-zinc-900/5"
-            >
-              ← Back
-            </button>
-            
-            <button
-              onClick={handleDone}
-              className="group relative overflow-hidden rounded-full px-8 py-3 bg-gradient-to-r from-zinc-900 to-zinc-800 text-white font-medium shadow-lg shadow-zinc-900/20 transition-all duration-300 hover:shadow-xl hover:shadow-zinc-900/30 hover:scale-105 active:scale-95"
-            >
-              <span className="relative z-10 flex items-center gap-2">
+            {/* DESKTOP ACTIONS */}
+            <div className="hidden lg:flex flex-col gap-3 pt-2">
+              <Button variant="primary" onClick={handleDone}>
                 Continue
-                <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </button>
-          </div>
+              </Button>
+              <Button variant="ghost" onClick={() => router.back()}>
+                Back
+              </Button>
+            </div>
+          </aside>
+
         </div>
-      </div>
+      </main>
+
+      {/* MOBILE ACTIONS */}
+      <footer className="lg:hidden fixed bottom-0 inset-x-0 bg-black/40 backdrop-blur-md border-t border-white/10 px-4 py-4 flex gap-3">
+        <Button variant="ghost" onClick={() => router.back()} className="flex-1">
+          Back
+        </Button>
+        <Button variant="primary" onClick={handleDone} className="flex-1">
+          Continue
+        </Button>
+      </footer>
     </div>
   );
 }
