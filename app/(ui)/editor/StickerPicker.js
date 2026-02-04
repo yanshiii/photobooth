@@ -37,17 +37,12 @@ const STICKERS = [
 
 const CATEGORIES = ["Fun", "Animals", "Nature", "Music", "Symbols", "Objects"];
 
-/* ───────────────── RECENT ROW ───────────────── */
-
 function StickerRecentRow({ recent, onAdd }) {
   if (!recent.length) return null;
 
   return (
     <div className="space-y-2">
-      <p className="text-[11px] uppercase tracking-widest text-white/40">
-        Recently used
-      </p>
-
+      <p className="label-text text-white/50">Recently used</p>
       <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
         {recent.map((src) => (
           <button
@@ -57,10 +52,10 @@ function StickerRecentRow({ recent, onAdd }) {
               h-12 w-12
               flex-shrink-0
               rounded-xl
-              bg-neutral-900/40
-              border border-neutral-700/25
+              bg-white/5
+              border border-white/10
               flex items-center justify-center
-              hover:bg-neutral-800/60
+              hover:bg-white/10
               transition
             "
           >
@@ -76,8 +71,6 @@ function StickerRecentRow({ recent, onAdd }) {
     </div>
   );
 }
-
-/* ───────────────── MAIN PICKER ───────────────── */
 
 export default function StickerPicker({ onAdd, selectSticker }) {
   const [activeCategory, setActiveCategory] = useState("Fun");
@@ -106,18 +99,12 @@ export default function StickerPicker({ onAdd, selectSticker }) {
       rotation: 0,
     });
 
-    // ✅ MAX 8 RECENT STICKERS
-    setRecent((prev) => [
-      src,
-      ...prev.filter((s) => s !== src),
-    ].slice(0, 8));
+    setRecent((prev) => [src, ...prev.filter((s) => s !== src)].slice(0, 8));
 
     requestAnimationFrame(() => selectSticker?.(id));
   }
 
-  const visible = STICKERS.filter(
-    (s) => s.category === activeCategory
-  );
+  const visible = STICKERS.filter((s) => s.category === activeCategory);
 
   return (
     <div className="space-y-5">
@@ -127,10 +114,10 @@ export default function StickerPicker({ onAdd, selectSticker }) {
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`px-4 py-1.5 rounded-full text-xs transition ${
+            className={`px-4 py-1.5 rounded-full text-xs transition border ${
               activeCategory === cat
-                ? "bg-rose-900/80 text-white"
-                : "bg-neutral-900/40 text-white/50"
+                ? "bg-[#ad2831]/30 text-[#F5F5DC] border-[#f2d9a6]/40"
+                : "bg-white/5 text-white/60 border-white/10 hover:bg-white/10"
             }`}
           >
             {cat}
@@ -138,11 +125,7 @@ export default function StickerPicker({ onAdd, selectSticker }) {
         ))}
       </div>
 
-      {/* RECENT — STICKY / NON-SCROLLING */}
-      <StickerRecentRow
-        recent={recent}
-        onAdd={handleAdd}
-      />
+      <StickerRecentRow recent={recent} onAdd={handleAdd} />
 
       {/* STICKER GRID */}
       <div className="grid grid-cols-5 sm:grid-cols-4 gap-3 sm:gap-5">
@@ -153,11 +136,11 @@ export default function StickerPicker({ onAdd, selectSticker }) {
             className="
               aspect-square
               rounded-xl
-              bg-neutral-900/35
-              border border-neutral-700/25
+              bg-white/5
+              border border-white/10
               flex items-center justify-center
               transition
-              hover:bg-neutral-800/60
+              hover:bg-white/12
             "
           >
             <img
