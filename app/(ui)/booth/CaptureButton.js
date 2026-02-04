@@ -67,28 +67,28 @@ export default function CaptureButton({
     <div className="relative">
       {/* Outer pulsing ring */}
       <motion.div
-        className="absolute inset-0 rounded-full border-2 border-ruby-500/40"
-        animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0, 0.6] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+        className="absolute inset-0 rounded-full border-2 border-[#ad2831]/35"
+        animate={{ scale: [1, 1.25, 1], opacity: [0.5, 0, 0.5] }}
+        transition={{ duration: 2.2, repeat: Infinity, ease: "easeOut" }}
       />
 
       {/* Middle ring */}
       <motion.div
-        className="absolute inset-2 rounded-full border border-ruby-400/30"
-        animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0, 0.4] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeOut", delay: 0.3 }}
+        className="absolute inset-2 rounded-full border border-[#f2d9a6]/30"
+        animate={{ scale: [1, 1.12, 1], opacity: [0.35, 0, 0.35] }}
+        transition={{ duration: 2.2, repeat: Infinity, ease: "easeOut", delay: 0.3 }}
       />
 
       {/* Main button */}
       <motion.button
         onClick={handleCapture}
         disabled={disabled || isCapturing}
-        whileHover={{ scale: 1.05 }}
+        whileHover={{ scale: 1.04 }}
         whileTap={{ scale: 0.95 }}
         className={`
           relative h-20 w-20 rounded-full
-          bg-gradient-to-br from-ruby-500 via-ruby-600 to-ruby-700
-          shadow-[0_0_30px_rgba(173,40,49,0.6),0_0_60px_rgba(173,40,49,0.3)]
+          bg-[radial-gradient(circle_at_30%_30%,#f2d9a6_0%,#c84b55_35%,#7a2e35_70%,#4a1419_100%)]
+          shadow-[0_0_24px_rgba(173,40,49,0.5),0_0_60px_rgba(173,40,49,0.25)]
           border-4 border-white/20
           ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}
           transition-all duration-300
@@ -96,7 +96,7 @@ export default function CaptureButton({
       >
         {/* Inner white circle */}
         <motion.div
-          className="absolute inset-3 rounded-full bg-white shadow-inner"
+          className="absolute inset-3 rounded-full bg-[#fffaf3] shadow-inner"
           animate={isCapturing ? { scale: [1, 0.7, 1] } : {}}
           transition={{ duration: 0.3 }}
         />
@@ -104,7 +104,7 @@ export default function CaptureButton({
         {/* Flash overlay */}
         {isCapturing && (
           <motion.div
-            className="absolute inset-0 rounded-full bg-white"
+            className="absolute inset-0 rounded-full bg-[#fffaf3]"
             initial={{ opacity: 0.8, scale: 1 }}
             animate={{ opacity: 0, scale: 1.5 }}
             transition={{ duration: 0.3 }}

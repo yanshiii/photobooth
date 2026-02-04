@@ -27,6 +27,13 @@ function FrameImage({ frame, alt }) {
 }
 
 export default function PhotoStrip({ frames, activeIndex, slots }) {
+  if (!Number.isFinite(slots)) {
+    return (
+      <div className="text-white/40 text-sm">
+        Invalid layout
+      </div>
+    );
+  }
   const stripBackground = useBoothStore((s) => s.stripBackground);
 
   const stripRef = useRef(null);
@@ -39,8 +46,13 @@ export default function PhotoStrip({ frames, activeIndex, slots }) {
     const stripH = stripRef.current.offsetHeight;
     const containerH = containerRef.current.offsetHeight;
 
+    if (!stripH || !containerH) {
+      setScale(1);
+      return;
+    }
+
     setScale(stripH > containerH ? containerH / stripH : 1);
-  }, [slots]);
+  }, [slots, frames]);
 
   return (
     <div ref={containerRef} className="h-full flex items-center justify-center">

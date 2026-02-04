@@ -1,28 +1,15 @@
 "use client";
 
-/**
- * Typography System
- * 
- * Font Hierarchy:
- * - Display / Headings: Lovira (rare, impactful)
- * - Accent / Subtext: Raclie (UI labels, meta)
- * - Body: Inter (everything else)
- * 
- * Scale:
- * - Restrained, cinema-grade
- * - Tight line-heights
- */
-
 export function Title({ children, className = "" }) {
   return (
     <h1
       className={`
-        text-4xl
-        sm:text-5xl
-        font-semibold
-        tracking-tight
-        leading-[1.1]
         font-display
+        text-warm
+        font-[420]
+        text-[clamp(2.8rem,6vw,5.4rem)]
+        leading-[1.02]
+        tracking-[0.08em]
         ${className}
       `}
     >
@@ -35,9 +22,11 @@ export function Subtitle({ children, className = "" }) {
   return (
     <p
       className={`
-        text-base
-        leading-relaxed
-        font-body
+        font-accent
+        text-[clamp(1.05rem,1.6vw,1.35rem)]
+        leading-[1.7]
+        tracking-[0.03em]
+        opacity-75
         ${className}
       `}
     >
@@ -48,46 +37,8 @@ export function Subtitle({ children, className = "" }) {
 
 export function Body({ children, className = "" }) {
   return (
-    <p
-      className={`
-        text-sm
-        leading-relaxed
-        font-body
-        ${className}
-      `}
-    >
+    <p className={`font-body text-sm leading-[1.65] ${className}`}>
       {children}
     </p>
-  );
-}
-
-export function Meta({ children, className = "" }) {
-  return (
-    <span
-      className={`
-        text-[10px]
-        tracking-wider
-        font-accent
-        ${className}
-      `}
-    >
-      {children}
-    </span>
-  );
-}
-
-export function Label({ children, className = "" }) {
-  return (
-    <label
-      className={`
-        text-xs
-        font-medium
-        tracking-wide
-        font-accent
-        ${className}
-      `}
-    >
-      {children}
-    </label>
   );
 }

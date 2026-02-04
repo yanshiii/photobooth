@@ -9,6 +9,7 @@ body {
   margin: 0;
   padding: 0;
   background-color: #0d0706;
+  overflow-x: hidden;
 }
 
 html {
@@ -20,25 +21,184 @@ html {
 ========================= */
 
 @font-face {
-  font-family: "Lovira";
-  src: url("/fonts/Lovira-Regular.woff2") format("woff2");
-  font-weight: 400 700;
+  font-family: "GT Getai";
+  src: url("/fonts/DT Getai Grotesk Display Black.woff2") format("woff2");
+  font-weight: 200 900;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Raclie";
-  src: url("/fonts/Raclie-Regular.woff2") format("woff2");
-  font-weight: 400 700;
+  font-family: "Melodrama";
+  src: url("/fonts/Melodrama-Variable.woff2") format("woff2");
+  font-weight: 200 800;
   font-style: normal;
   font-display: swap;
 }
 
+/* =========================
+   Root Variables
+========================= */
+
 :root {
-  --font-display: "Lovira", Georgia, serif;
-  --font-accent: "Raclie", "DM Sans", sans-serif;
-  --font-body: "Inter", system-ui, sans-serif;
+  --font-display: "GT Getai", system-ui, sans-serif;
+  --font-accent: "Melodrama", serif;
+  --font-body: "Melodrama", serif;
+  --ink-warm: #f2d9a6;
+  --ruby-glow: rgba(122, 46, 53, 0.25);
+}
+
+/* =========================
+   Base Typography
+========================= */
+
+body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-rendering: optimizeLegibility;
+  color: var(--ink-warm);
+}
+
+/* =========================
+   Animations
+========================= */
+
+@keyframes fadeUpSoft {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rubyPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.14;
+  }
+  100% {
+    transform: scale(1.04);
+    opacity: 0.2;
+  }
+}
+
+@keyframes textShimmer {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes rubyGradient {
+  0%   { background-position: 0% 0%; }
+  50%  { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+@keyframes waveMove {
+  0%   { transform: translateX(0); }
+  50%  { transform: translateX(-25%); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes filmDrift {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(12px); }
+  100% { transform: translateY(0); }
+}
+
+/* =========================
+   Headings & UI Components
+========================= */
+
+h1 {
+  font-family: var(--font-display);
+  font-weight: 250;
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  line-height: 1.0;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+  max-width: 20ch;
+  
+  /* Apply gradient and clipping to the entire H1 and its children */
+  background: linear-gradient(90deg, #f2d9a6 0%, #fff 50%, #f2d9a6 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  
+  animation: 
+    fadeUpSoft 1.6s ease-out both,
+    textShimmer 6s linear infinite;
+
+  filter: drop-shadow(0 0 15px rgba(242, 217, 166, 0.15));
+}
+
+.h1-soft {
+  display: block; /* Forces it to the next line as you intended */
+  font-weight: 340;
+  letter-spacing: 0.12em;
+  opacity: 0.9;
+  margin-top: 0.1rem;
+  /* Re-clipping to ensure the transparent fill color shows the gradient */
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+h2 {
+  font-family: var(--font-display);
+  font-weight: 320;
+  font-size: clamp(1.4rem, 3.2vw, 2.4rem);
+  line-height: 1.15;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.5rem;
+  max-width: 28ch;
+
+  background: linear-gradient(90deg, #f2d9a6 0%, #fff 50%, #f2d9a6 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  animation: fadeUpSoft 1.4s ease-out both, textShimmer 7s linear infinite;
+  filter: drop-shadow(0 0 12px rgba(242, 217, 166, 0.12));
+}
+
+
+.subtitle {
+  font-family: var(--font-accent);
+  font-size: clamp(1rem, 1.4vw, 1.25rem);
+  line-height: 1.6;
+  letter-spacing: 0.06em;
+  opacity: 0.65;
+  max-width: 45ch;
+  animation: fadeUpSoft 1.5s ease-out both;
+  animation-delay: 0.2s;
+}
+
+/* Refined Glass Card for Layout Options */
+.glass-card-refined {
+  position: relative;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(12px);
+  border-radius: 24px;
+  padding: 2rem;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  
+  /* Dual-border trick for "Light-catching" top edge */
+  border: 1px solid transparent;
+  background-image: linear-gradient(#0d0706, #0d0706), 
+                    linear-gradient(135deg, rgba(242, 217, 166, 0.2), rgba(122, 46, 53, 0));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+.glass-card-refined:hover {
+  transform: translateY(-8px);
+  background-color: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(122, 46, 53, 0.2);
 }
 
 /* =========================
@@ -86,11 +246,10 @@ html {
 ========================= */
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
@@ -98,49 +257,44 @@ html {
    Ruby Cinematic Background
 ========================= */
 
-@keyframes rubyGradient {
-  0%   { background-position: 0% 0%; }
-  50%  { background-position: 100% 100%; }
-  100% { background-position: 0% 0%; }
-}
-
 .ruby-animated-bg {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: -2;
   background: linear-gradient(
     315deg,
-    #0d0706 0%,     /* near-black burgundy */
-    #1f0b0a 30%,    /* deeper brown-burgundy */
-    #2d0f13 55%,    /* dark wine-brown */
-    #4a1419 75%,    /* muted burgundy */
-    #1f0b0a 100%    /* loop back to dark */
+    #0d0706 0%,
+    #1a0908 30%,
+    #240c0f 55%,
+    #3d0f14 75%,
+    #0d0706 100%
   );
   background-size: 400% 400%;
-  animation: rubyGradient 22s ease infinite;
+  animation: rubyGradient 25s ease infinite;
 }
 
 /* =========================
-   Ruby Ambient Circles
+   Ruby Ambient Circles (Original Concentric Logic)
 ========================= */
-
-@keyframes rubyPulse {
-  from { transform: scale(1); }
-  to   { transform: scale(1.12); }
-}
 
 .ruby-circles {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
   overflow: hidden;
+  background: radial-gradient(
+    circle at -10% 35%,
+    rgba(242, 217, 166, 0.22) 0 18%,
+    rgba(122, 46, 53, 0.22) 18% 38%,
+    rgba(92, 26, 31, 0.2) 38% 58%,
+    rgba(74, 20, 25, 0.18) 58% 78%,
+    rgba(45, 15, 19, 0.16) 78% 100%
+  );
 }
 
 .ruby-circle {
-  position: absolute;
-  border-radius: 50%;
-  animation: rubyPulse 4s ease-in-out infinite alternate;
+  display: none;
 }
 
 .ruby-circle.sm  { width: 300px; height: 300px; }
@@ -148,21 +302,15 @@ html {
 .ruby-circle.lg  { width: 900px; height: 900px; }
 .ruby-circle.xl  { width: 1200px; height: 1200px; }
 
-.ruby-950 { background: #1f0b0a; opacity: 0.22; }
-.ruby-900 { background: #2d0f13; opacity: 0.18; }
-.ruby-800 { background: #4a1419; opacity: 0.14; }
-.ruby-700 { background: #5c1a1f; opacity: 0.10; }
-.ruby-500 { background: #7a2e35; opacity: 0.05; }
+.ruby-950 { color: rgba(31, 11, 10, 0.22); }
+.ruby-900 { color: rgba(45, 15, 19, 0.2); }
+.ruby-800 { color: rgba(74, 20, 25, 0.18); }
+.ruby-700 { color: rgba(92, 26, 31, 0.16); }
+.ruby-500 { color: rgba(122, 46, 53, 0.14); }
 
 /* =========================
    Ruby Waves
 ========================= */
-
-@keyframes waveMove {
-  0%   { transform: translateX(0); }
-  50%  { transform: translateX(-25%); }
-  100% { transform: translateX(0); }
-}
 
 .ruby-wave {
   position: fixed;
@@ -186,10 +334,31 @@ html {
 .film-grain {
   position: fixed;
   inset: 0;
-  z-index: 2;
+  z-index: 5;
   pointer-events: none;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.04'/></svg>");
+  opacity: 0.0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
+
+/* Decorative film rails */
+.film-rail {
+  position: absolute;
+  top: -6%;
+  bottom: -6%;
+  width: 140px;
+  background-image: url("/backgrounds/film-rail.svg");
+  background-repeat: repeat-y;
+  background-size: 140px 480px;
+  opacity: 0.55;
+  mix-blend-mode: normal;
+  filter: blur(0);
+  animation: filmDrift 24s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.film-rail.left { left: -6px; }
+.film-rail.right { right: -6px; }
 
 /* =========================
    3D Flip Button Animation
@@ -209,9 +378,7 @@ html {
 }
 
 /* Perspective utility */
-.perspective-\[30rem\] {
-  perspective: 30rem;
-}
+.perspective-30 { perspective: 30rem; }
 
 /* =========================
    Enhanced Button Shadows

@@ -10,7 +10,7 @@ import {
   Line,
   Text,
 } from "react-konva";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useLayoutEffect } from "react";
 import { STRIP } from "@/styles/stripGeometry";
 import {
   RotateIcon,
@@ -227,36 +227,21 @@ export default function KonvaStage({
   const memoryFont = useBoothStore((s) => s.memoryFont);
   const memoryAllCaps = useBoothStore((s) => s.memoryAllCaps);
 
-  /* -------- FIX: DEFINE DATE FIRST -------- */
   const formattedDate = new Date().toLocaleDateString();
-
   const hasMessage = memoryText.trim().length > 0;
   const showDate = memoryDateEnabled;
-
-  const finalMessage = memoryAllCaps
-    ? memoryText.toUpperCase()
-    : memoryText;
-
-  const finalDate = memoryAllCaps
-    ? formattedDate.toUpperCase()
-    : formattedDate;
+  const finalMessage = memoryAllCaps ? memoryText.toUpperCase() : memoryText;
+  const finalDate = memoryAllCaps ? formattedDate.toUpperCase() : formattedDate;
 
   const FONT_CONFIG = {
     Arial: { family: "Arial", size: 15, lineHeight: 1.15, letterSpacing: 0 },
     Inter: { family: "Inter", size: 14.5, lineHeight: 1.2, letterSpacing: 0 },
-    "Courier New": {
-      family: "Courier New",
-      size: 15,
-      lineHeight: 1.15,
-      letterSpacing: -0.3,
-    },
+    "Courier New": { family: "Courier New", size: 15, lineHeight: 1.15, letterSpacing: -0.3 },
   };
 
   const font = FONT_CONFIG[memoryFont] ?? FONT_CONFIG.Arial;
-
   const BASE_Y = paperHeight - STRIP.BOTTOM_MEMORY_HEIGHT;
   const CENTER_Y = BASE_Y + STRIP.BOTTOM_MEMORY_HEIGHT / 2;
-
   const MESSAGE_Y = BASE_Y + 14;
   const DATE_Y_WITH_MESSAGE = BASE_Y + 36;
   const DATE_Y_ALONE = CENTER_Y - 6;
@@ -269,39 +254,59 @@ export default function KonvaStage({
       urls.push(url);
       const img = new window.Image();
       img.src = url;
-      img.onload = () =>
-        setImages((p) => ((p[i] = img), [...p]));
+      img.onload = () => setImages((p) => {
+        const newImages = [...p];
+        newImages[i] = img;
+        return newImages;
+      });
     });
     return () => urls.forEach(URL.revokeObjectURL);
   }, [frames]);
 
-  useEffect(() => {
-    if (!containerRef.current) return;
-    setScale(Math.min(1, containerRef.current.clientHeight / paperHeight));
-  }, [paperHeight]);
+  // Handle Dynamic Scaling for Responsiveness
+  useLayoutEffect(() => {
+    function handleResize() {
+      if (!containerRef.current) return;
+      
+      // Minimal padding to maximize the strip size within the viewport
+      const padding = 20; 
+      const availableHeight = containerRef.current.clientHeight - padding;
+      const availableWidth = containerRef.current.clientWidth - padding;
+
+      const scaleY = availableHeight / paperHeight;
+      const scaleX = availableWidth / paperWidth;
+
+      // Fit-contain logic: Use the smaller scale so it stays within bounds,
+      // but removed the "1" limit so it can scale UP on large screens.
+      setScale(Math.min(scaleX, scaleY)); 
+    }
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [paperHeight, paperWidth]);
 
   return (
-    <div ref={containerRef} className="h-full flex justify-center">
-      <Stage
-        ref={stageRef}
-        width={paperWidth * scale}
-        height={paperHeight * scale}
-        scale={{ x: scale, y: scale }}
-        onMouseDown={(e) => {
-          if (e.target === e.target.getStage()) onClearSelection();
+    <div ref={containerRef} className="w-full h-full flex items-center justify-center overflow-hidden">
+      <div 
+        style={{ 
+          width: paperWidth * scale, 
+          height: paperHeight * scale,
+          transition: "width 0.3s ease, height 0.3s ease" // Smooth transition when layouts change
         }}
       >
-        <>
-          <Layer>
+        <Stage
+          ref={stageRef}
+          width={paperWidth * scale}
+          height={paperHeight * scale}
+          scale={{ x: scale, y: scale }}
+          onMouseDown={(e) => {
+            if (e.target === e.target.getStage()) onClearSelection();
+          }}
+        >
+          <Layer id="content-layer">
             <Rect width={paperWidth} height={paperHeight} fill={stripBackground} />
-            <Rect
-              x={0}
-              y={paperHeight - STRIP.BOTTOM_MEMORY_HEIGHT}
-              width={paperWidth}
-              height={STRIP.BOTTOM_MEMORY_HEIGHT}
-              fill={stripBackground}
-            />
-
+            
             {hasMessage && (
               <Text
                 text={finalMessage}
@@ -331,39 +336,35 @@ export default function KonvaStage({
               />
             )}
 
-            {images.map(
-              (img, i) =>
-                img && (
-                  <Image
-                    key={i}
-                    image={img}
-                    x={STRIP.PADDING_X}
-                    y={STRIP.PADDING_TOP + i * (frameH + STRIP.SEPARATOR)}
-                    width={frameW}
-                    height={frameH}
-                  />
-                )
-            )}
+            {images.map((img, i) => img && (
+              <Image
+                key={i}
+                image={img}
+                x={STRIP.PADDING_X}
+                y={STRIP.PADDING_TOP + i * (frameH + STRIP.SEPARATOR)}
+                width={frameW}
+                height={frameH}
+              />
+            ))}
 
-            {isExporting &&
-              stickers.map((s) => (
+            {isExporting && stickers.map((s) => {
+              const img = new window.Image();
+              img.src = s.src;
+              return (
                 <Image
                   key={s.id}
-                  image={(() => {
-                    const img = new window.Image();
-                    img.src = s.src;
-                    return img;
-                  })()}
+                  image={img}
                   x={s.x}
                   y={s.y}
                   width={s.width}
                   height={s.height}
                   rotation={s.rotation}
                 />
-              ))}
+              );
+            })}
           </Layer>
 
-          <Layer>
+          <Layer id="ui-layer">
             {isDraggingSticker && (
               <Group>
                 <Rect
@@ -379,25 +380,8 @@ export default function KonvaStage({
                   strokeWidth={2}
                   dash={[8, 6]}
                 />
-                <Text
-                  text="🗑"
-                  x={0}
-                  y={deleteZoneY + 6}
-                  width={paperWidth}
-                  align="center"
-                  fontSize={28}
-                />
-                <Text
-                  text="DROP HERE TO DELETE"
-                  x={0}
-                  y={deleteZoneY + 36}
-                  width={paperWidth}
-                  align="center"
-                  fontSize={12}
-                  fontStyle="bold"
-                  fill="#ffffff"
-                  letterSpacing={1.5}
-                />
+                <Text text="🗑" x={0} y={deleteZoneY + 6} width={paperWidth} align="center" fontSize={28} />
+                <Text text="DROP HERE TO DELETE" x={0} y={deleteZoneY + 36} width={paperWidth} align="center" fontSize={12} fontStyle="bold" fill="#ffffff" letterSpacing={1.5} />
               </Group>
             )}
 
@@ -414,8 +398,8 @@ export default function KonvaStage({
               />
             ))}
           </Layer>
-        </>
-      </Stage>
+        </Stage>
+      </div>
     </div>
   );
 }

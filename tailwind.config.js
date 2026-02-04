@@ -8,11 +8,12 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        display: ['Lovira', 'Georgia', 'serif'],
-        accent: ['Raclie', 'DM Sans', 'sans-serif'],
-        body: ['var(--font-body)', 'Inter', 'system-ui', 'sans-serif'],
+        display: ['"GT Getai"', 'system-ui', 'sans-serif'],
+        accent: ['"Melodrama"', 'serif'],
+        body: ['"Melodrama"', 'serif'],
       },
       colors: {
+        warm: '#f2d9a6', // romantic soft yellow
         ruby: {
           50: '#fdf2f3',
           100: '#fce4e6',
