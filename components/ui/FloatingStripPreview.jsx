@@ -4,117 +4,89 @@ import { motion } from "framer-motion";
 
 /**
  * FloatingStripPreview
- *
- * Purpose:
- * - Emotional preview of the final photo strip
- * - Matches real photobooth paper aesthetic
- * - Introduces ruby/burgundy palette tastefully
- *
- * Rules:
- * - NO real images
- * - NO logic
- * - NO state
- * - Visual only
+ * - Retro film strip vibe with sprocket holes
+ * - Squared edges, warm ruby/cream palette (no black)
  */
 
 export default function FloatingStripPreview() {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 40, rotate: -4 }}
-      animate={{ opacity: 1, y: 0, rotate: -2 }}
-      transition={{ duration: 0.9, ease: "easeOut" }}
-      className="relative hidden lg:block"
+      initial={{ opacity: 0, x: 20, rotate: 2 }}
+      animate={{ opacity: 1, x: 0, rotate: 5 }}
+      transition={{ duration: 1.2, ease: "easeOut" }}
+      className="relative hidden lg:block pr-12"
     >
       {/* Burgundy ambient glow */}
       <div
         className="
           absolute
-          -inset-24
-          rounded-full
+          -inset-40
           blur-[140px]
-          bg-[#5c1a1f]/30
+          bg-[#6b1f28]/20
         "
       />
 
-      {/* Paper strip */}
+      {/* Main Paper strip */}
       <motion.div
-        animate={{ y: [0, -12, 0] }}
+        animate={{ y: [0, -15, 0], rotate: [5, 4, 5] }}
         transition={{
-          duration: 7,
+          duration: 8,
           repeat: Infinity,
           ease: "easeInOut",
         }}
         className="
           relative
-          bg-neutral-50
-          p-3.5
-          shadow-[0_35px_90px_-22px_rgba(0,0,0,0.55),0_12px_40px_-10px_rgba(45,21,32,0.3)]
-          w-[260px]
+          w-[270px]
+          p-[2px]
+          bg-[#fdfaf7]
+          border-x border-[#e8d5c8]/40
+          shadow-[25px_40px_80px_-20px_rgba(0,0,0,0.4),0_10px_30px_-10px_rgba(62,18,28,0.2)]
         "
       >
-        {/* Frames */}
-        <div className="flex flex-col gap-4">
+        {/* Paper grain */}
+        <div
+          className="
+            absolute inset-0
+            pointer-events-none
+            opacity-[0.06]
+            mix-blend-multiply
+            bg-[radial-gradient(circle_at_20%_20%,rgba(0,0,0,0.12),transparent_40%),radial-gradient(circle_at_80%_10%,rgba(0,0,0,0.1),transparent_45%),radial-gradient(circle_at_50%_80%,rgba(0,0,0,0.08),transparent_45%)]
+          "
+        />
+
+        {/* Frames Container */}
+        <div className="relative flex flex-col gap-2 px-5">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
               className="
                 relative
-                aspect-[3/4]
+                -right-0.5
+                -left-0.5
+                aspect-[1/1.2]
                 overflow-hidden
-                bg-gradient-to-br
-                /* ⬇️ CHANGE FRAME COLORS HERE ⬇️ */
-                from-[#3d2428]  /* dark wine-brown */
-                to-[#2a1820]    /* deeper burgundy-black */
-                /* ⬆️ CHANGE FRAME COLORS HERE ⬆️ */
+                bg-[#1a0d11]
+                shadow-[inset_0_0_20px_rgba(0,0,0,0.8)]
               "
             >
-              {/* Inner photographic feel */}
-              <div
-                className="
-                  absolute inset-0
-                  bg-gradient-to-br
-                  from-black/0
-                  via-black/20
-                  to-black/40
-                "
-              />
+              {/* Emulsion color grade */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-[#6b1f28]/10 via-transparent to-white/5" />
 
-              {/* Subtle vignette */}
-              <div
-                className="
-                  absolute inset-0
-                  shadow-[inset_0_0_40px_rgba(0,0,0,0.35)]
-                "
-              />
+              {/* Glossy reflection */}
+              <div className="absolute inset-0 bg-[linear-gradient(110deg,rgba(255,255,255,0.1)_0%,rgba(255,255,255,0)_45%,rgba(255,255,255,0.06)_65%)]" />
 
-              {/* Burgundy marker on last frame only */}
-              {i === 3 && (
-                <div
-                  className="
-                    absolute
-                    bottom-3
-                    right-3
-                    w-2.5
-                    h-2.5
-                    rounded-full
-                    bg-[#7a2e35]
-                    opacity-75
-                    shadow-[0_0_8px_rgba(122,46,53,0.6)]
-                  "
-                />
-              )}
+              {/* Inner frame border */}
+              <div className="absolute inset-[1px] border border-white/5" />
             </div>
           ))}
         </div>
 
-        {/* Paper edge highlight */}
-        <div
-          className="
-            absolute inset-0
-            pointer-events-none
-            shadow-[inset_0_1px_3px_rgba(0,0,0,0.08)]
-          "
-        />
+        {/* Footer info: printed timestamp */}
+        <div className="mt-4 flex justify-center items-center px-1 opacity-50 grayscale">
+          <span className="text-[8px] font-mono tracking-widest text-[#6b1f28]">
+            04 FEB 2026
+          </span>
+        </div>
       </motion.div>
     </motion.div>
   );

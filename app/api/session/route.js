@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid";
 import { validateCreateSession } from "@/lib/validation";
 import { getLayoutById } from "@/lib/layouts";
-
+import { createSession } from "@/lib/sessionStore";
 export async function POST(req) {
   try {
     const body = await req.json();
@@ -14,6 +14,7 @@ export async function POST(req) {
 
     // 3️⃣ Create session
     const sessionId = nanoid(16);
+    createSession({ sessionId, layout });
 
     return new Response(
       JSON.stringify({

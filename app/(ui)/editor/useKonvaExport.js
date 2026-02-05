@@ -18,5 +18,20 @@ export function useKonvaExport(stageRef) {
     });
   }
 
-  return { exportImage };
+  async function exportAndUpload() {
+    const blob = await exportImage();
+    if (!blob) return null;
+
+    const formData = new FormData();
+    formData.append("image", blob);
+
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    return await res.json(); // { key }
+  }
+
+  return { exportImage, exportAndUpload };
 }
