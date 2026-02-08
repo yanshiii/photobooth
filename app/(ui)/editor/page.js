@@ -323,7 +323,7 @@ export default function EditorPage() {
         </p>
       </header>
 
-      <main className="flex-1 min-h-0 px-4 pb-24 lg:pb-8 pt-6 lg:pt-6 lg:overflow-hidden relative z-10" onPointerDown={() => clearSelection()}>
+      <main className="flex-1 min-h-0 px-4 pb-24 lg:pb-8 pt-6 lg:pt-6 lg:overflow-hidden relative z-10" >
         
         <div
           className="
