@@ -238,6 +238,8 @@ export default function EditorPage() {
     deleteSticker,
   } = useBoothStore();
 
+  const { exportImage } = useKonvaExport(stageRef);
+
   if (!frames || frames.every((img) => img === null)) {
     return (
       <div className="min-h-screen flex items-center justify-center text-white/60 font-body">
@@ -245,8 +247,6 @@ export default function EditorPage() {
       </div>
     );
   }
-
-  const { exportImage } = useKonvaExport(stageRef);
 
   async function exportAndUpload() {
     const blob = await exportImage();
@@ -323,7 +323,8 @@ export default function EditorPage() {
         </p>
       </header>
 
-      <main className="flex-1 min-h-0 px-4 pb-24 lg:pb-8 pt-6 lg:pt-6 lg:overflow-hidden relative z-10">
+      <main className="flex-1 min-h-0 px-4 pb-24 lg:pb-8 pt-6 lg:pt-6 lg:overflow-hidden relative z-10" onPointerDown={() => clearSelection()}>
+        
         <div
           className="
             max-w-[1400px]

@@ -62,6 +62,7 @@ function StickerImage({
 
   const handleSelect = (e) => {
     e.cancelBubble = true;
+    e.evt?.stopPropagation?.();
     onSelect();
     requestAnimationFrame(attachTransformer);
   };
@@ -81,8 +82,8 @@ function StickerImage({
         shadowEnabled
         shadowColor={isOverDelete ? "#ef4444" : "#7f1d1d"}
         shadowBlur={isSelected ? 12 : 6}
-        onClick={handleSelect}
-        onTap={handleSelect}
+        onMouseDown={handleSelect}
+        onTouchStart={handleSelect}
         onDragStart={() => {
           setIsDragging(true);
           setIsDraggingSticker(true);
@@ -301,8 +302,20 @@ export default function KonvaStage({
           height={paperHeight * scale}
           scale={{ x: scale, y: scale }}
           onMouseDown={(e) => {
-            if (e.target === e.target.getStage()) onClearSelection();
+            const clickedOnEmpty =
+              e.target === e.target.getStage() ||
+              e.target.getParent()?.getClassName() === "Layer";
+
+            if (clickedOnEmpty) {
+              onClearSelection();
+            }
           }}
+          onTouchStart={(e) => {
+            if (e.target === e.target.getStage()) {
+              onClearSelection();
+            }
+          }}
+
         >
           <Layer id="content-layer">
             <Rect width={paperWidth} height={paperHeight} fill={stripBackground} />

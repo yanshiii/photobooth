@@ -84,11 +84,16 @@ export default function ResultPage() {
 
   function handleDownload() {
     if (!previewUrl || expired) return;
-    const a = document.createElement("a");
-    a.href = previewUrl;
-    a.download = "photobooth-strip.png";
-    a.click();
+
+    const link = document.createElement("a");
+    link.href = previewUrl;
+    link.download = "photobooth-strip.png";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
+
+
 
   if (!finalImage) {
     return (
